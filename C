@@ -1,6 +1,11 @@
 #!/bin/bash
 # Launch created by Amir Bagheri
 tgcli_version="170904-nightly"
+luarocks_version=2.4.2
+lualibs=(
+'redis-lua'
+'serpent'
+)
 today=`date +%F`
 
 get_sub() {
@@ -26,9 +31,25 @@ function get_tgcli_version() {
 	echo "$tgcli_version"
 }
 
+function download_libs_lua() {
+    if [[ ! -d "logs" ]]; then mkdir logs; fi
+    if [[ -f "logs/logluarocks_${today}.txt" ]]; then rm logs/logluarocks_${today}.txt; fi
+    local i
+    for ((i=0;i<${#lualibs[@]};i++)); do
+        printf "\r\33[2K"
+        printf "\rCerNerCompany: wait... [`make_progress $(($i+1)) ${#lualibs[@]}`%%] [$(($i+1))/${#lualibs[@]}] ${lualibs[$i]}"
+        ./.luarocks/bin/luarocks install ${lualibs[$i]} &>> logs/logluarocks_${today}.txt
+    done
+    sleep 0.2
+    printf "\nLogfile created: $PWD/logs/logluarocks_${today}.txt\nDone\n"
+    rm -rf luarocks-2.2.2*
+}
+
 function configure() {
     dir=$PWD
     wget http://luarocks.org/releases/luarocks-${luarocks_version}.tar.gz &>/dev/null
+    tar zxpf luarocks-${luarocks_version}.tar.gz &>/dev/null
+    cd luarocks-${luarocks_version}
     if [[ ${1} == "--no-null" ]]; then
         ./configure --prefix=$dir/.luarocks --sysconfdir=$dir/.luarocks/luarocks --force-config
         make bootstrap
@@ -38,20 +59,21 @@ function configure() {
     fi
     cd ..; rm -rf luarocks*
     if [[ ${1} != "--no-download" ]]; then
+        download_libs_lua
         wget --progress=bar:force https://valtman.name/files/telegram-bot-${tgcli_version}-linux 2>&1 | get_sub
         mv telegram-bot-${tgcli_version}-linux telegram-bot; chmod +x telegram-bot
     fi
     for ((i=0;i<101;i++)); do
-        printf "\nConfiguring... [%i%%]" $i
+        printf "\rConfiguring... [%i%%]" $i
         sleep 0.007
     done
     mkdir $HOME/.telegram-bot; cat <<EOF > $HOME/.telegram-bot/config
 default_profile = "main";
 main = {
-  lua_script = "$HOME/Anti/bot/bot.lua";
+  lua_script = "$HOME/Cleaner/bot/clean.lua";
 };
 EOF
-    printf "\n\tDone\n"
+    printf "\nDone\n"
 }
 
 function start_bot() {
@@ -80,7 +102,7 @@ function show_logo_slowly() {
     logo=(
     "CerNer Cleaner By Amir Bagheri : CerNer Company"
     )
-    printf "\n\t"
+    printf "\033[38;5;208m\t"
     local i x
     for i in ${!logo[@]}; do
         for ((x=0;x<${#logo[$i]};x++)); do
@@ -91,22 +113,12 @@ function show_logo_slowly() {
     done
     printf "\n"
 }
-red() {
-  printf '\e[1;31m%s\n\e[0;39;49m' "$@"
-}
-green() {
-  printf '\e[1;32m%s\n\e[0;39;49m' "$@"
-}
-white() {
-  printf '\e[1;37m%s\n\e[0;39;49m' "$@"
-}
+
 function show_logo() {
     #Adding some color. By @iicc1 :D
-   	echo -e "\e[0m"
-
-     red "CerNer Cleaner By Amir Bagheri : CerNer Company"
-	echo -e "\e[0m"
-
+    echo -e "\033[38;5;208m"
+    echo -e "CerNer Cleaner By Amir Bagheri : CerNer Company"
+    echo -e "\n\e[36m"
 }
 
 case $1 in
@@ -138,4 +150,5 @@ esac
 show_logo
 start_bot $@
 exit 0
+ 
  
