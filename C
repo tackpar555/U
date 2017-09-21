@@ -70,7 +70,7 @@ function configure() {
     mkdir $HOME/.telegram-bot; cat <<EOF > $HOME/.telegram-bot/config
 default_profile = "main";
 main = {
-  lua_script = "$HOME/شدفه-سحشپ/bot/bot.lua";
+  lua_script = "$HOME/Anti-Spam/bot/bot.lua";
 };
 EOF
     printf "\nDone\n"
@@ -85,7 +85,7 @@ function login_bot() {
 }
 
 function update_bot() {
-  git checkout launch.sh plugins/ lang/ bot/ libs/
+  git checkout C/  bot/ libs/
   git pull
   echo chmod +x launch.sh | /bin/bash
   version=$(echo "./launch.sh tgcli_version" | /bin/bash)
