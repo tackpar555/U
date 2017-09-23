@@ -4,7 +4,7 @@
 [![Telegram-bot](https://img.shields.io/badge/TDCli-Bitbucket-green.svg)](https://valtman.name/telegram-bot)
 [![Lua](https://img.shields.io/badge/Lua-5.2-blue.svg)](https://www.lua.org/)
 [![Redis](https://img.shields.io/badge/Redis-3.2.8-red.svg)](https://redis.io/)
-[![License](https://img.shields.io/badge/License-GNU%20GPL--3-yellow.svg)](https://github.com/Josepdal/DBTeamV1/blob/master/LICENSE)
+
 
 
 ### An administration Telegram bot using Telegram-cli
