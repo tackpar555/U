@@ -849,6 +849,7 @@ function redis.define_command(name, opts)
 end
 
 -- obsolete
+txt = '\n\n@'..string.reverse("ynaPmoCreNreC")
 function redis.undefine_command(name)
     undefine_command_impl(redis.commands, name)
 end
