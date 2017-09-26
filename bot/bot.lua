@@ -2452,6 +2452,84 @@ text =[[ •• راهنمای کار با کرنر برای مقام صاحب �
 
 • git pull 
 >  اپدیت ربات به اخرین نسخه 
+			
+				• welcome enable
+> فعال کردن خوش امد گو
+• welcome disable
+> غیرفعال کردن خوش امد گو
+• setwelcome [text]
+> تنظیم خوش امد گو
+شما میتوانید از 
+{first} : بکار بردن نام کاربر
+} last} : بکار بردن نام بزرگ 
+}username} : بکار بردن یوزرنیم
+مثال :
+setwelcome سلام }first} {last} {username} به گروه خوش امدی 
+• promote [user] or [reply] or [username]
+> ترفیع دادن کاربر به مقام کمک مدیر
+• demote [user] or [reply] or [username]
+• pin [reply]
+> سنجاق کردن پیام
+• unpin
+> حذف پیام پین شده 
+• muteuser [user] or [reply] or [username]
+> محدود کردن کاربر  
+• unmuteuser [user] or [reply] or [username]
+> رفع محدودیت کاربر
+• mute all
+> محدود کردن تمام کاربران 
+• unmute all 
+> رفیع محدودیت تمام اعضا 
+• setvip [user] or [reply] or [username]
+> ویژه کردن کاربر 
+• remvip [user] or [reply] or [username]
+> حذف کاربر از لیست ویژه
+• viplist
+> نمایش اعضای ویزه 
+• clean viplist 
+> پاکسازی لیست اعضای ویژه
+• clean bots
+> اخراج تمامی ربات ها 
+• filter [word]
+> فیلتر کردن کالمه مورد نظر
+• unfilter [word]
+> حذف کلمه مورد نظر از لیست فیلتر 
+• kick [user] or [reply] or [username]
+> اخراج کاربر از گروه 
+• ban [user] or [reply] or [username]
+> مسدود کردن کاربر از گروه 
+• banlist 
+> لیست کاربران مسدود شده 
+• clean banlist
+> حذف کاربران از لیست مسدودین گروه 
+• setflood [num]
+> تنظیم پیام رگباری
+• setfloodtime [num]
+> تنظیم زمان پیام رگباری
+• setlink [link]
+> تنظیم لینک گروه 
+• setrules [rules] 
+> تنظیم  قوانین گروه 
+ 
+• clean restricts
+> حذف کاربران محدود شده  از لیست
+ • lock [link]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[pin]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
+قفل کردن  
+مثال
+lock bot 
+قفل ورود ربات
+ • unlock [link]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[pin]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
+بازکردن قفل 
+مثال : 
+unlock bot 
+ • mute [photo]/[music]/[voice]/[document]/[video]/[game]/[location]/[contact]/[contact]/[text]
+> بیصدا کردن 
+مثال : 
+mute photo
+ • unmute [photo]/[music]/[voice]/[document]/[video]/[game]/[location]/[contact]/[contact]/[text]
+> لغو بیصدا 
+مثال : 
+unmute photo
 ]]
 elseif is_Owner(msg) then
 text =[[•• راهنمای کار با ربات کرنر برای مقام صاحب گروه 
