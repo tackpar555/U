@@ -1570,7 +1570,7 @@ print '                     Private                          '
     else
 redis:sadd('BanUser:'..msg.chat_id,user_id)
 KickUser(msg.chat_id,user_id)
-sendText(msg.chat_id, msg.id, 'User `'..user_id..'` *Has Been Banned ..!*'..txt, 'md')
+sendText(msg.chat_id, msg.id, 'User `'..user_id..'` Has Been Banned ..!*'..txt, 'md')
 end
 end
 if cerner and cerner:match('^ban @(.*)') then
@@ -1600,7 +1600,7 @@ local username = cerner:match('^unban @(.*)')
 function UnBanByUserName(CerNer,Company)
 if Company.id then
 redis:srem('BanUser:'..msg.chat_id,Company.id)
-RemoveFromBanlist(msg.chat_id,Company.id)
+RemoveFromBanList(msg.chat_id,Company.id)
 txtt=  '@['..check_markdown(username)..'] [`'..Company.id..'`] * Removed From BanList..!*'
 else 
 txtt = 'User Not Found'
@@ -1637,7 +1637,7 @@ print '                     Private                          '
     else
 if Company.id then
 KickUser(msg.chat_id,Company.id)
-RemoveFromBanlist(msg.chat_id,Company.id)
+RemoveFromBanList(msg.chat_id,Company.id)
 txtt= 'User `'..Company.sender_user_id..'`* Has Been Kicked*'
 else 
 txtt = 'User Not Found'
@@ -1672,7 +1672,7 @@ print '                     Private                          '
     else
 KickUser(msg.chat_id,user_id)
 sendText(msg.chat_id, msg.id, 'User `'..user_id..'`* Has Been Kicked*'..txt, 'md')
-RemoveFromBanlist(msg.chat_id,user_id)
+RemoveFromBanList(msg.chat_id,user_id)
 end
 end
 if cerner and cerner:match('^setflood (%d+)') then
@@ -1681,7 +1681,7 @@ if tonumber(num) < 2 then
 sendText(msg.chat_id, msg.id, '`Select a number greater than` *2*'..txt,'md')
 else
 redis:set('Flood:Max:'..msg.chat_id,num)
-sendText(msg.chat_id, msg.id, '`Flood Sensitivity change to` *'..num..'*'..txt,RemoveFromBanlist 'md')
+sendText(msg.chat_id, msg.id, '`Flood Sensitivity change to` *'..num..'*'..txt,RemoveFromBanList 'md')
 end
 end
 if cerner and cerner:match('^setfloodtime (%d+)') then
