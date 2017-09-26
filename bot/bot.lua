@@ -574,7 +574,7 @@ end
 local txtt = txtt:gsub('{first}',Company.first_name)
 local txtt = txtt:gsub('{last}',Company.last_name or '')
 local txtt = txtt:gsub('{username}',Company.username or '')
-sendText(msg.chat_id, msg.id, txtt..txt,'md')
+sendText(msg.chat_id, msg.id, txtt..txt,'html')
 end
 GetUser(msg.content.member_user_ids[0],WelcomeByAddUser)
 end
@@ -1557,7 +1557,7 @@ if cerner and cerner:match('^unban (%d+)') then
 local user_id = cerner:match('^unban (%d+)')
 redis:srem('BanUser:'..msg.chat_id,user_id)
 RemoveFromBanList(msg.chat_id,user_id)
-sendText(msg.chat_id, msg.id, '`'..user_id..'` Removed From BanList..!*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '`'..user_id..'` *Removed From BanList..!*'..txt, 'md')
 end
 if cerner and cerner:match('^ban (%d+)') then
 local user_id = cerner:match('^ban (%d+)')
@@ -1570,7 +1570,7 @@ print '                     Private                          '
     else
 redis:sadd('BanUser:'..msg.chat_id,user_id)
 KickUser(msg.chat_id,user_id)
-sendText(msg.chat_id, msg.id, 'User `'..user_id..'` Has Been Banned ..!*'..txt, 'md')
+sendText(msg.chat_id, msg.id, 'User `'..user_id..'` *Has Been Banned ..!*'..txt, 'md')
 end
 end
 if cerner and cerner:match('^ban @(.*)') then
