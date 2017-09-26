@@ -1365,13 +1365,12 @@ sendText(msg.chat_id, msg.id, 'User `'..user..'`* Has Been Demoted*'..txt, 'md')
 end
 if cerner == 'mute all' then
     local function pro(arg,data)
+
 if redis:get("Check:Mutell:"..msg.chat_id) then
 text = 'هر 5دقیقه یکبار ممکن است'
 end
 for k,v in pairs(data.members) do
- if tonumber(v.user_id) == tonumber(TD_ID) or is_sudo(msg) then
-    return false
-    end
+
 redis:set('MuteAll:'..msg.chat_id,true)
  mute(msg.chat_id, v.user_id,'Restricted',   {1, 1, 0, 0, 0,0})
    redis:setex("Check:Mutell:"..msg.chat_id,350,true)
@@ -1612,28 +1611,38 @@ resolve_username(username,UnBanByUserName)
 end
 if cerner== 'kick' and tonumber(msg.reply_to_message_id) > 0 then
 function kick_by_reply(CerNer,Company)
- if tonumber(Company.sender_user_id) == tonumber(TD_ID) or is_sudo(msg) then
+if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
     return false
     end
+  if private(msg.chat_id,Company.sender_user_id) then
+print '                     Private                          '
+  sendText(msg.chat_id, msg.id, "شما نمیتوانید یک فرد دارای مقام را اخراج کنید", 'md')
+    else
 sendText(msg.chat_id, msg.id, 'User `'..Company.sender_user_id..'`* Has Been Kicked*'..txt, 'md')
 KickUser(msg.chat_id,Company.sender_user_id)
-RemoveFromBanlist(msg.chat_id,Company.sender_user_id)
+RemoveFromBanList(msg.chat_id,Company.sender_user_id)
  end
+end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),kick_by_reply)
 end
 if cerner and cerner:match('^kick @(.*)') then
 local username = cerner:match('^kick @(.*)')
 function KickByUserName(CerNer,Company)
-if Company.id then
- if tonumber(Company.id) == tonumber(TD_ID) or is_sudo(msg) then
+if tonumber(Company.id) == tonumber(TD_ID) then
     return false
     end
+  if private(msg.chat_id,Company.id) then
+print '                     Private                          '
+  sendText(msg.chat_id, msg.id, "شما نمیتوانید یک فرد دارای مقام را اخراج کنید", 'md')
+    else
+if Company.id then
 KickUser(msg.chat_id,Company.id)
 RemoveFromBanlist(msg.chat_id,Company.id)
 txtt= 'User `'..Company.sender_user_id..'`* Has Been Kicked*'
 else 
 txtt = 'User Not Found'
 sendText(msg.chat_id, msg.id, txtt..txt,  'md')
+end
 end
 end
 resolve_username(username,KickByUserName)
@@ -1654,12 +1663,17 @@ sendText(msg.chat_id, msg.id,'افراد محدود پاک شدند' ,'md')
 end 
 if cerner and cerner:match('^kick (%d+)') then
 local user_id = cerner:match('^kick (%d+)')
- if tonumber(user_id) == tonumber(TD_ID) or is_sudo(msg) then
+if tonumber(user_id) == tonumber(TD_ID) then
     return false
     end
+  if private(msg.chat_id,user_id) then
+print '                     Private                          '
+  sendText(msg.chat_id, msg.id, "شما نمیتوانید یک فرد دارای مقام را اخراج کنید", 'md')
+    else
 KickUser(msg.chat_id,user_id)
 sendText(msg.chat_id, msg.id, 'User `'..user_id..'`* Has Been Kicked*'..txt, 'md')
 RemoveFromBanlist(msg.chat_id,user_id)
+end
 end
 if cerner and cerner:match('^setflood (%d+)') then
 local num = cerner:match('^setflood (%d+)')
@@ -1667,7 +1681,7 @@ if tonumber(num) < 2 then
 sendText(msg.chat_id, msg.id, '`Select a number greater than` *2*'..txt,'md')
 else
 redis:set('Flood:Max:'..msg.chat_id,num)
-sendText(msg.chat_id, msg.id, '`Flood Sensitivity change to` *'..num..'*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '`Flood Sensitivity change to` *'..num..'*'..txt,RemoveFromBanlist 'md')
 end
 end
 if cerner and cerner:match('^setfloodtime (%d+)') then
