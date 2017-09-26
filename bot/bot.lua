@@ -60,10 +60,10 @@ function is_Banned(chat_id,user_id)
     end
   end
 function private(chat_id,user_id)
-  local Owner = redis:sismember('OwnerList'..chat_id,user_id)
-  local Mod = redis:sismember('ModList'..chat_id,user_id)
+  local Owner = redis:sismember('OwnerList:'..chat_id,user_id)
+  local Mod = redis:sismember('ModList:'..chat_id,user_id)
 local Vip = redis:sismember('Vip:'..chat_id,user_id)
- if tonumber(user_id) == tonumber(TD_ID) or Owner or Mod or Vip or is_sudo(msg) then
+ if tonumber(user_id) == tonumber(TD_ID) or Owner or Mod or Vip then
    return true
     else
     return false
@@ -454,9 +454,12 @@ end
     end
  if msg.content._ == "messageChatAddMembers" then
          print("[ CerNerCompany ]\nThis is [ AddUser ]")
+for i=0,#msg.content.member_user_ids do
+msg.add = msg.content.member_user_ids[i]
 print(serpent.block(data))
        MsgType = 'AddUser'
     end
+end
     if msg.content._ == "messageChatJoinByLink" then
          print("[ CerNerCompany ]\nThis is [JoinByLink ]")
        MsgType = 'JoinedByLink'
@@ -719,18 +722,16 @@ if cerner then
 end
 -----------------------------------------------
 if redis:get('Lock:Bot:'..chat) then
-if MsgType == 'AddUser' then
-for i=0,#member_user_ids do
+if msg.add then
 function ByAddUser(CerNer,Company)
 if Company.type._ == "userTypeBot" then
+print '               Bot added              '  
 KickUser(msg.chat_id,Company.id)
 end
 end
+GetUser(msg.add,ByAddUser)
 end
-GetUser(msg.content.member_user_ids[i],ByAddUser)
 end
-end
-
 -----------------------------------------------
 if redis:get('Lock:Inline:'..chat) then
  if not msg.reply_markup and msg.via_bot_user_id ~= 0 then
@@ -883,7 +884,7 @@ function is_group(msg)
   end
 end
 
-function is_private(msg)
+function is_privatee(msg)
   chat_id = tostring(msg.chat_id)
   if chat_id:match('^-') then
     return false
@@ -1148,9 +1149,6 @@ end
 ---------Start---------------Globaly Banned-------------------
 if cerner == 'banall' then
 function GbanByReply(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) or is_sudo(msg) then
-    return false
-    end
 if redis:sismember('GlobalyBanned:',Company.sender_user_id) then
 sendText(msg.chat_id, msg.id,  '`User : ` *'..Company.sender_user_id..'* is *Already* `a Globaly Banned..!`'..txt, 'md')
 else
@@ -1165,9 +1163,6 @@ end
 end
 if cerner and cerner:match('^banall (%d+)') then
 local user = cerner:match('^banall (%d+)')
-if tonumber(user) == tonumber(TD_ID) or is_sudo(msg) then
-    return false
-    end
 if redis:sismember('GlobalyBanned:',user) then
 sendText(msg.chat_id, msg.id,  '`User : ` *'..user..'* is *Already* ` Globaly Banned..!`', 'md')
 else
@@ -1179,9 +1174,6 @@ if cerner and cerner:match('^banall @(.*)') then
 local username = cerner:match('^banall @(.*)')
 function BanallByUsername(CerNer,Company)
 if Company.id then
-if tonumber(Company.id) == tonumber(TD_ID) or is_sudo(msg) then
-    return false
-    end
 print(''..Company.id..'')
 if redis:sismember('GlobalyBanned:', Company.id) then
 text  ='`User : ` *'..Company.id..'* is* Already* `  Globaly Banned..!`'
@@ -1486,9 +1478,17 @@ sendText(msg.chat_id, msg.id,"*Done User* `"..mutess.."` *Has Been  Muteed :) \n
 end
 if cerner == 'muteuser' then
 function Restricted(CerNer,Company)
+if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+    return false
+    end
+  if private(msg.chat_id,Company.sender_user_id) then
+print '                     Private                          '
+  sendText(msg.chat_id, msg.id, "شما نمیتوانید یک فرد دارای مقام رامحدود  کنید", 'md')
+    else
 mute(msg.chat_id, Company.sender_user_id,'Restricted',   {1, 1, 0, 0, 0,0})
 redis:sadd('MuteList:'..msg.chat_id,Company.sender_user_id)
 sendText(msg.chat_id, msg.id,"*Done User* `"..Company.sender_user_id.."` *Has Been  Muteed :) \nRestricted*"..txt,  'md' )
+end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
@@ -1514,12 +1514,17 @@ sendText(msg.chat_id, msg.id,"_Done_ \n*User* `"..mutes.."` *Has Been Unmuted* *
 end
 if cerner == 'ban' and tonumber(msg.reply_to_message_id) > 0 then
 function BanByReply(CerNer,Company)
- if tonumber(Company.sender_user_id) == tonumber(TD_ID) or is_sudo(msg) then
+if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
     return false
     end
+  if private(msg.chat_id,Company.sender_user_id) then
+print '                     Private                          '
+  sendText(msg.chat_id, msg.id, "شما نمیتوانید یک فرد دارای مقام را اخراج کنید", 'md')
+    else
 sendText(msg.chat_id, msg.id, 'User `'..Company.sender_user_id..'` *Has Been Banned ..!*'..txt, 'md')
 redis:sadd('BanList:'..msg.chat_id,Company.sender_user_id)
 KickUser(msg.chat_id,Company.sender_user_id)
+end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),BanByReply)
 end
@@ -1557,27 +1562,40 @@ sendText(msg.chat_id, msg.id, '`'..user_id..'` Removed From BanList..!*'..txt, '
 end
 if cerner and cerner:match('^ban (%d+)') then
 local user_id = cerner:match('^ban (%d+)')
-if tonumber(user_id) == tonumber(TD_ID) or is_sudo(msg) then
+if tonumber(user_id) == tonumber(TD_ID) then
     return false
     end
+  if private(msg.chat_id,user_id) then
+print '                     Private                          '
+  sendText(msg.chat_id, msg.id, "شما نمیتوانید یک فرد دارای مقام را اخراج کنید", 'md')
+    else
 redis:sadd('BanUser:'..msg.chat_id,user_id)
 KickUser(msg.chat_id,user_id)
 sendText(msg.chat_id, msg.id, 'User `'..user_id..'` Has Been Banned ..!*'..txt, 'md')
 end
+end
 if cerner and cerner:match('^ban @(.*)') then
 local username = cerner:match('^ban @(.*)')
+print '                     Private                          '
 function BanByUserName(CerNer,Company)
+if tonumber(Company.id) == tonumber(TD_ID) then
+    return false
+    end
+  if private(msg.chat_id,Company.id) then
+print '                     Private                          '
+  sendText(msg.chat_id, msg.id, "شما نمیتوانید یک فرد دارای مقام را اخراج کنید", 'md')
+    else
 if Company.id then
 KickUser(msg.chat_id,Company.id)
-txtt= 'User `'..Company.sender_user_id..'`* Has Been Banned*'
+txtt= 'User `'..Company.id..'`* Has Been Banned*'
 else 
 txtt = 'User Not Found'
 sendText(msg.chat_id, msg.id, txtt..txt,  'md')
 end
 end
+end
 resolve_username(username,BanByUserName)
 end
-
 if cerner and cerner:match('^unban @(.*)') then
 local username = cerner:match('^unban @(.*)')
 function UnBanByUserName(CerNer,Company)
@@ -1620,7 +1638,20 @@ end
 end
 resolve_username(username,KickByUserName)
 end
-
+if cerner == 'clean restricts' then
+local function pro(arg,data)
+if redis:get("Check:Restricted:"..msg.chat_id) then
+text = 'هر 5دقیقه یکبار ممکن است'
+end
+for k,v in pairs(data.members) do
+redis:del('MuteAll:'..msg.chat_id)
+ mute(msg.chat_id, v.user_id,'Restricted',    {0, 0, 0, 0, 1,1})
+   redis:setex("Check:Restricted:"..msg.chat_id,350,true)
+end
+end
+getChannelMembers(msg.chat_id, 0, 100000000000, "Recent",pro)
+sendText(msg.chat_id, msg.id,'افراد محدود پاک شدند' ,'md')
+end 
 if cerner and cerner:match('^kick (%d+)') then
 local user_id = cerner:match('^kick (%d+)')
  if tonumber(user_id) == tonumber(TD_ID) or is_sudo(msg) then
@@ -2452,85 +2483,104 @@ text =[[ •• راهنمای کار با کرنر برای مقام صاحب �
 
 • git pull 
 >  اپدیت ربات به اخرین نسخه 
-			
-				• welcome enable
+
+• welcome enable
 > فعال کردن خوش امد گو
+
 • welcome disable
 > غیرفعال کردن خوش امد گو
+
 • setwelcome [text]
 > تنظیم خوش امد گو
 شما میتوانید از 
+
 {first} : بکار بردن نام کاربر
 } last} : بکار بردن نام بزرگ 
 }username} : بکار بردن یوزرنیم
+
 مثال :
 setwelcome سلام }first} {last} {username} به گروه خوش امدی 
-• promote [user] or [reply] or [username]
-> ترفیع دادن کاربر به مقام کمک مدیر
-• demote [user] or [reply] or [username]
-• pin [reply]
-> سنجاق کردن پیام
-• unpin
-> حذف پیام پین شده 
+
 • muteuser [user] or [reply] or [username]
 > محدود کردن کاربر  
+
 • unmuteuser [user] or [reply] or [username]
 > رفع محدودیت کاربر
+
 • mute all
 > محدود کردن تمام کاربران 
+
 • unmute all 
 > رفیع محدودیت تمام اعضا 
+
 • setvip [user] or [reply] or [username]
 > ویژه کردن کاربر 
+
 • remvip [user] or [reply] or [username]
 > حذف کاربر از لیست ویژه
+
 • viplist
 > نمایش اعضای ویزه 
+
 • clean viplist 
 > پاکسازی لیست اعضای ویژه
+
 • clean bots
 > اخراج تمامی ربات ها 
+
 • filter [word]
 > فیلتر کردن کالمه مورد نظر
+
 • unfilter [word]
 > حذف کلمه مورد نظر از لیست فیلتر 
+
 • kick [user] or [reply] or [username]
 > اخراج کاربر از گروه 
+
 • ban [user] or [reply] or [username]
 > مسدود کردن کاربر از گروه 
+
 • banlist 
 > لیست کاربران مسدود شده 
+
 • clean banlist
 > حذف کاربران از لیست مسدودین گروه 
+
 • setflood [num]
 > تنظیم پیام رگباری
+
 • setfloodtime [num]
 > تنظیم زمان پیام رگباری
+
 • setlink [link]
 > تنظیم لینک گروه 
+
 • setrules [rules] 
 > تنظیم  قوانین گروه 
  
 • clean restricts
 > حذف کاربران محدود شده  از لیست
- • lock [link]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[pin]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
+
+ • lock [link]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
 قفل کردن  
 مثال
 lock bot 
 قفل ورود ربات
- • unlock [link]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[pin]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
+
+ • unlock [link]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
 بازکردن قفل 
 مثال : 
 unlock bot 
+
  • mute [photo]/[music]/[voice]/[document]/[video]/[game]/[location]/[contact]/[contact]/[text]
 > بیصدا کردن 
 مثال : 
 mute photo
+
  • unmute [photo]/[music]/[voice]/[document]/[video]/[game]/[location]/[contact]/[contact]/[text]
 > لغو بیصدا 
 مثال : 
-unmute photo
-]]
+unmute photo]]
 elseif is_Owner(msg) then
 text =[[•• راهنمای کار با ربات کرنر برای مقام صاحب گروه 
 • welcome enable
@@ -2742,7 +2792,11 @@ mute photo
  • unmute [photo]/[music]/[voice]/[document]/[video]/[game]/[location]/[contact]/[contact]/[text]
 > لغو بیصدا 
 مثال : 
-unmute photo]]
+unmute photo
+
+clean restricts
+> حذف کابران محدود شده از لیست 
+]]
 elseif not is_Mod(msg) then
 text =[[شما میتوانید از 
 
