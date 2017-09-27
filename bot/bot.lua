@@ -15,7 +15,7 @@ function is_sudo(msg)
   end
   return var
 end
-function is_FullSudo(msg)
+function is_Fullsudo(msg)
   local var = false
   for v,user in pairs(Full_Sudo) do
     if user == msg.sender_user_id then
@@ -1001,6 +1001,36 @@ end
 			output = str
 		end
 	return output
+end
+if is_Fullsudo(msg) then
+if cerner and cerner:match('^setsudo (%d+)') then
+local sudo = cerner:match('^setsudo (%d+)')
+redis:sadd('SUDO-ID',sudo)
+sendText(msg.chat_id, msg.id, '`'..sudo..'` *Added To SudoList*'..txt, 'md')
+end
+if cerner and cerner:match('^remsudo (%d+)') then
+  local sudo = cerner:match('^remsudo (%d+)')
+  redis:srem('SUDO-ID',sudo)
+  sendText(msg.chat_id, msg.id, '`'..sudo..'` *Removed From SudoList*'..txt, 'md')
+end
+if cerner == 'sudolist' then
+local hash =  "SUDO-ID"
+local list = redis:smembers(hash)
+local t = '*Sudo list: *\n'
+for k,v in pairs(list) do
+local user_info = datebase:hgetall('user:'..v)
+if user_info and user_info.username then
+local username = user_info.username
+t = t..k.." - @"..username.." ["..v.."]\n"
+else
+t = t..k.." - "..v.."\n"
+end
+end
+if #list == 0 then
+t = '*Nil*'
+end
+sendText(msg.chat_id, msg.id,t..txt, 'md')
+end
 end
 if is_supergroup(msg) then
 if is_sudo(msg) then
