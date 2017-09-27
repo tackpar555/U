@@ -1,5 +1,8 @@
 #start Project Anti Spam V3:)
-json = dofile('./libs/JSON.lua');serpent = dofile("./libs/serpent.lua");local lgi = require ('lgi');local notify = lgi.require('Notify');notify.init ("Telegram updates");require('./libs/lua-redis');redis =  dofile("./libs/redis.lua");SUDO_ID = {363936960,310217440};local minute = 60;local hour = 3600;local day = 86400;local week = 604800;TD_ID = redis:get('BOT-ID')
+json = dofile('./libs/JSON.lua');serpent = dofile("./libs/serpent.lua");local lgi = require ('lgi');local notify = lgi.require('Notify');notify.init ("Telegram updates");require('./libs/lua-redis');redis =  dofile("./libs/redis.lua");local minute = 60;local hour = 3600;local day = 86400;local week = 604800;TD_ID = redis:get('BOT-ID')
+CerNerCompany = '`اختصاصی  کمپانی کرنر `'
+SUDO_ID = {363936960}
+Full_Sudo = {363936960}
 function is_sudo(msg)
   local var = false
  for v,user in pairs(SUDO_ID) do
@@ -9,6 +12,15 @@ function is_sudo(msg)
   end
   if redis:sismember("SUDO-ID", msg.sender_user_id) then
     var = true
+  end
+  return var
+end
+function is_FullSudo(msg)
+  local var = false
+  for v,user in pairs(Full_Sudo) do
+    if user == msg.sender_user_id then
+      var = true
+    end
   end
   return var
 end
@@ -87,6 +99,19 @@ function is_MuteUser(chat_id,user_id)
     return false
     end
   end
+function ec_name(name) 
+str = name
+if str:match('_') then
+str = str:gsub('_','')
+end
+if str:match('*') then
+str = str:gsub('*','')
+end
+if str:match('`') then
+str = str:gsub('`','')
+end
+return str
+end
 local function getChatId(chat_id)
   local chat = {}
   local chat_id = tostring(chat_id)
@@ -143,6 +168,12 @@ function KickUser(chat_id, user_id)
     	},
   	}, dl_cb, nil)
 end
+function getFile(fileid,cb)
+  assert (tdbot_function ({
+    _ = 'getFile',
+    file_id = fileid
+    }, cb, nil))
+end
 function Left(chat_id, user_id, s)
    assert (tdbot_function ({
     _ = "changeChatMemberStatus",
@@ -186,10 +217,10 @@ function promoteToAdmin(chat_id, user_id)
   	}, dl_cb, nil)
 end
 function resolve_username(username,cb)
-    assert ( tdbot_function ({
+     tdbot_function ({
         _ = "searchPublicChat",
         username = username
-  }, cb, nil))
+  }, cb, nil)
 end
 function RemoveFromBanList(chat_id, user_id)
 tdbot_function ({
@@ -302,6 +333,27 @@ function sendGame(chat_id, reply_to_message_id, botuserid, gameshortname, disabl
   }
   sendMessage(chat_id, reply_to_message_id, input_message_content, disable_notification, from_background, reply_markup)
 end
+function SendMetin(chat_id, user_id, msg_id, text, offset, length)
+  assert (tdbot_function ({
+    _ = "sendMessage",
+    chat_id = chat_id,
+    reply_to_message_id = msg_id,
+    disable_notification = 0,
+    from_background = true,
+    reply_markup = nil,
+    input_message_content = {
+      _ = "inputMessageText",
+      text = text,
+      disable_web_page_preview = 1,
+      clear_draft = false,
+      entities = {[0] = {
+      offset = offset,
+      length = length,
+      _ = "textEntity",
+      type = {user_id = user_id, _ = "textEntityTypeMentionName"}}}
+    }
+  }, dl_cb, nil))
+end
 local function sendMessage(c, e, r, n, e, r, callback, data)
   assert (tdbot_function ({
     _ = 'sendMessage',
@@ -313,17 +365,23 @@ local function sendMessage(c, e, r, n, e, r, callback, data)
     input_message_content = r
   }, callback or dl_cb, data))
 end
-function sendPhoto(chat_id, reply_to_message_id, photo_file, caption, disable_notification, from_background, reply_markup)
-  local input_message_content = {
-    _ = 'inputMessagePhoto',
-    photo = getInputFile(photo_file),
-    added_sticker_file_ids ={},
-    width = 0,
-    height = 0,
-    caption = caption,
-  }
-    sendMessage(chat_id, reply_to_message_id, input_message_content, disable_notification, from_background, reply_markup)
-
+local function sendPhoto(chat_id, reply_to_message_id, disable_notification, from_background, reply_markup, photo, caption)
+ assert (tdbot_function ({
+    _= "sendMessage",
+    chat_id = chat_id,
+    reply_to_message_id = reply_to_message_id,
+    disable_notification = disable_notification,
+    from_background = from_background,
+    reply_markup = reply_markup,
+    input_message_content = {
+     _ = "inputMessagePhoto",
+      photo = getInputFile(photo),
+      added_sticker_file_ids = {},
+      width = 0,
+      height = 0,
+      caption = caption
+    },
+  }, dl_cb, nil))
 end
 function GetUser(user_id, cb)
   assert (tdbot_function ({
@@ -362,6 +420,22 @@ assert (tdbot_function ({
     limit = limit
   }, cb, nil))
 end
+function sendGame(chat_id, msg_id, botuserid, gameshortname)
+   assert (tdbot_function ({
+    _ = "sendMessage",
+    chat_id = chat_id,
+    reply_to_message_id = msg_id,
+    disable_notification = 0,
+    from_background = true,
+    reply_markup = nil,
+    input_message_content = {
+    _ = 'inputMessageGame',
+    bot_user_id = botuserid,
+    game_short_name = tostring(gameshortname)
+  }
+    }, dl_cb, nil))
+end
+
 function SendMetion(chat_id, user_id, msg_id, text, offset, length)
   assert (tdbot_function ({
     _ = "sendMessage",
@@ -439,13 +513,15 @@ local cerner = msg.content.text
 local cerner1 = msg.content.text
 
 if cerner then
+if cerner and cerner:match('[QWERTYUIOPASDFGHJKLZXCVBNM]') then
 cerner = cerner:lower()
 end
-		 if MsgType == 'text' and cerner then
-      if cerner:match('^[/#!]') then
-      cerner= cerner:gsub('^[/#!]','')
-      end
-    end
+end
+ if MsgType == 'text' and cerner then
+if cerner:match('^[/#!]') then
+cerner= cerner:gsub('^[/#!]','')
+end
+end
 ------------------------------------
 --------------MSG TYPE----------------
  if msg.content._== "messageText" then
@@ -554,10 +630,18 @@ txtt = redis:get('Text:Welcome:'..msg.chat_id)
 else
 txtt = 'سلام {first}\nخوش امدی'
 end
-local txtt = txtt:gsub('{first}',Company.first_name)
+local hash = "Rules:"..msg.chat_id
+local cerner = redis:get(hash) 
+if cerner then
+rules=cerner
+else
+rules= '`قوانین ثبت نشده است`'
+end
+local txtt = txtt:gsub('{first}',ec_name(Company.first_name))
+local txtt = txtt:gsub('{rules}',rules)
 local txtt = txtt:gsub('{last}',Company.last_name or '')
-local txtt = txtt:gsub('{username}',Company.username or '')
-sendText(msg.chat_id, msg.id, txtt..txt,'html')
+local txtt = txtt:gsub('{username}',check_markdown(Company.username) or '')
+sendText(msg.chat_id, msg.id, txtt..txt,'md')
  end
 GetUser(msg.sender_user_id,WelcomeByLink)
 end
@@ -571,9 +655,17 @@ txtt = redis:get('Text:Welcome:'..msg.chat_id)
 else
 txtt = 'سلام \n {first} خوش امدی'
 end
-local txtt = txtt:gsub('{first}',Company.first_name)
+local hash = "Rules:"..msg.chat_id
+local cerner = redis:get(hash) 
+if cerner then
+rules=cerner
+else
+rules= '`قوانین ثبت نشده است`'
+end
+local txtt = txtt:gsub('{first}',ec_name(Company.first_name))
+local txtt = txtt:gsub('{rules}',rules)
 local txtt = txtt:gsub('{last}',Company.last_name or '')
-local txtt = txtt:gsub('{username}',Company.username or '')
+local txtt = txtt:gsub('{username}',check_markdown(Company.username) or '')
 sendText(msg.chat_id, msg.id, txtt..txt,'html')
 end
 GetUser(msg.content.member_user_ids[0],WelcomeByAddUser)
@@ -941,7 +1033,7 @@ if cerner == 'add' then
 local function GetName(CerNer, Company)
 redis:set("ExpireData:"..msg.chat_id,true)
 redis:setex("ExpireData:"..msg.chat_id,day,true)
-  redis:sadd("group:"..msg.chat_id,msg.chat_id)
+  redis:sadd("group:",msg.chat_id)
 redis:set('CheckExpire:'..msg.chat_id,true)
 if  redis:get('CheckBot:'..msg.chat_id) then
 local text = 'Group `'..Company.title..'` is *Already* Added'
@@ -1091,11 +1183,11 @@ local username = cerner:match('^setowner @(.*)')
 function SetOwnerByUsername(CerNer,Company)
 if Company.id then
 print(''..Company.id..'')
-if redis:sismember('OwnerList:'..msg.chat_id, Company.id) then
+if redis:sismember('OwnerList:'..msg.chat_id,Company.id) then
 text  ='`User : ` *'..Company.id..'* is *Already* `added to Ownerlist..!`'
 else
 text= '_ User : _ `'..Company.id..'` *Added* to `OwnerList`..'
-redis:sadd('OwnerList:'..msg.chat_id,user)
+redis:sadd('OwnerList:'..msg.chat_id,Company.id)
 end
 else 
 text = '*User NotFound*'
@@ -1398,6 +1490,37 @@ end
 end
 ----
 if is_Mod(msg) then
+-------COMING Soon..-----------------
+--[[if cerner == 'panel' then
+function GetPanel(CerNer,Company)
+if Company.results and Company.results[0] then
+  tdbot_function ({
+_ = "sendInlineQueryResultMessage",
+chat_id = msg.chat_id,
+reply_to_message_id = msg.id,
+disable_notification = 0,
+from_background = 1,
+query_id = Company.inline_query_id,
+result_id = Company.results[0]
+}, dl_cb, nil)
+else
+sendText(msg.chat_id, msg.id,  'اوه شت :(\nپیامی از طرف ربات اینلاین دریافت نکردم ', 'md')
+end
+end
+ tdbot_function ({
+  _ = 'getInlineQueryResults',
+    bot_user_id = 458237033,
+    chat_id = msg.chat_id,
+    user_location = {
+_ = "location",
+latitude = 0,
+longitude = 0
+},
+query = tostring(msg.chat_id),
+offset = 0
+}, GetPanel, nil)
+       end]]---
+---------------------------------
 if cerner == 'viplist' then
 local list = redis:smembers('Vip:'..msg.chat_id)
 local t = 'Vip Users\n'
@@ -1449,6 +1572,24 @@ redis:sadd('Vip:'..msg.chat_id, Company.sender_user_id)
 end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),SetVipByReply)
+end
+if cerner and cerner:match('^setvip @(.*)') then
+local username = cerner:match('^setvip @(.*)')
+function SetVipByUsername(CerNer,Company)
+if Company.id then
+print('SetVip\nBy : '..msg.sender_user_id..'\nUser : '..Company.id..'\nUserName : '..username)
+if redis:sismember('Vip:'..msg.chat_id,Company.id) then
+text=  '`User : ` *'..Company.id..'* is *Already* `a VIP member..!`'
+else
+text ='_ User : _ `'..Company.id..'` *Promoted* to `VIP` member..'
+redis:sadd('Vip:'..msg.chat_id, Company.id)
+end
+else 
+text = '*User NotFound*'
+end
+sendText(msg.chat_id, msg.id, text..txt, 'md')
+end
+resolve_username(username,SetVipByUsername)
 end
   if cerner == 'clean viplist'  then
 redis:del('Vip:'..msg.chat_id)
@@ -1573,6 +1714,29 @@ KickUser(msg.chat_id,user_id)
 sendText(msg.chat_id, msg.id, 'User `'..user_id..'` Has Been Banned ..!*'..txt, 'md')
 end
 end
+if cerner and cerner:match('^unban @(.*)') then
+local username = cerner:match('unban @(.*)')
+function UnBanByUserName(CerNer,Company)
+if Company.id then
+print('UserID : '..Company.id..'\nUserName : @'..username)
+redis:srem('BanUser:'..msg.chat_id,Company.id)
+txtt= ' [`'..Company.id..'`] * Removed From BanList..!*'
+else 
+txtt = 'User Not Found'
+end
+sendText(msg.chat_id, msg.id, txtt,  'md')
+print('Send')
+end
+resolve_username(username,UnBanByUserName)
+end
+if cerner == 'unban' and tonumber(msg.reply_to_message_id) > 0 then
+function UnBan_by_reply(CerNer,Company)
+redis:srem('BanUser:'..msg.chat_id,Company.sender_user_id)
+sendText(msg.chat_id, msg.id, 'User `'..Company.sender_user_id..'`* Has Been Unbaned*'..txt, 'md')
+RemoveFromBanList(msg.chat_id,Company.sender_user_id)
+ end
+getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),UnBan_by_reply)
+end
 if cerner and cerner:match('^ban @(.*)') then
 local username = cerner:match('^ban @(.*)')
 print '                     Private                          '
@@ -1589,26 +1753,13 @@ KickUser(msg.chat_id,Company.id)
 txtt= 'User `'..Company.id..'`* Has Been Banned*'
 else 
 txtt = 'User Not Found'
-sendText(msg.chat_id, msg.id, txtt..txt,  'md')
 end
+sendText(msg.chat_id, msg.id, txtt..txt,  'md')
 end
 end
 resolve_username(username,BanByUserName)
 end
-if cerner and cerner:match('^unban @(.*)') then
-local username = cerner:match('^unban @(.*)')
-function UnBanByUserName(CerNer,Company)
-if Company.id then
-redis:srem('BanUser:'..msg.chat_id,Company.id)
-RemoveFromBanList(msg.chat_id,Company.id)
-txtt=  '@['..check_markdown(username)..'] [`'..Company.id..'`] * Removed From BanList..!*'
-else 
-txtt = 'User Not Found'
-sendText(msg.chat_id, msg.id, txtt..txt,  'md')
-end
-end
-resolve_username(username,UnBanByUserName)
-end
+
 if cerner== 'kick' and tonumber(msg.reply_to_message_id) > 0 then
 function kick_by_reply(CerNer,Company)
 if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
@@ -1681,7 +1832,7 @@ if tonumber(num) < 2 then
 sendText(msg.chat_id, msg.id, '`Select a number greater than` *2*'..txt,'md')
 else
 redis:set('Flood:Max:'..msg.chat_id,num)
-sendText(msg.chat_id, msg.id, '`Flood Sensitivity change to` *'..num..'*'..txt,RemoveFromBanList 'md')
+sendText(msg.chat_id, msg.id, '`Flood Sensitivity change to` *'..num..'*'..txt, 'md')
 end
 end
 if cerner and cerner:match('^setfloodtime (%d+)') then
@@ -2337,44 +2488,76 @@ resolve_username(username,IdByUserName)
 
 if cerner == 'id' then
 function GetID(CerNer, Company)
-local text = 'CerNer Company\n\nUser ID : ['..Company.sender_user_id..']\n\n@CerNerCompany'
-sendText(msg.chat_id, msg.id, text, 'md')
+ local user = Company.sender_user_id
+local text = 'CerNer Company\n\nUser ID : ['..user..']\n\n@CerNerCompany'
+SendMetion(msg.chat_id,user, msg.id, text, 27, string.len(user))
 end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),GetID)
 end
 end
-if cerner == 'id' then 
-local function GetName(CerNer, Company)
+if cerner and cerner:match('^whois (%d+)') then
+local user_id = tonumber(cerner:match('^whois (%d+)'))
+ local user = user_id
+local text = 'CerNer Company\n\nUser ID : [Click To See User]\n\n@CerNerCompany'
+SendMetion(msg.chat_id,user, msg.id, text, 27, string.len(user))
+end
+ if cerner == "id"  then 
 if tonumber(msg.reply_to_message_id) == 0  then 
+ function GetPro(CerNer, Company)
 Msgs = redis:get('Total:messages:'..msg.chat_id..':'..msg.sender_user_id)
 if is_sudo(msg) then
-rank = 'Sudo' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "Sudo")..'' 
 elseif is_Owner(msg) then
-rank = 'Owner' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "Owner")..'' 
 elseif is_Mod(msg) then
-rank = 'Admin' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "ADMIN")..''
 elseif is_Vip(msg) then
-rank = 'Vip' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "VIP")..''
 elseif not is_Mod(msg) then
 rank = ''..(redis:get('rank'..msg.sender_user_id) or "Member")..''
 end
-sendText(msg.chat_id, msg.id,  '`CerNer Company`!!\n\nChat Name : ['..Company.title..']\n\nChat ID : ['..msg.chat_id..']\n\nUser ID : ['..msg.sender_user_id..']\n\nRank : ['..rank..']\n\nTotal Msgs : '..Msgs..'\n\nTD ID : '..TD_ID..'\n\n@CerNerCompany', 'md')
+ if Company.photos[0] then
+print('persistent_id : '..Company.photos[0].sizes[2].photo.persistent_id)  
+sendPhoto(msg.chat_id, msg.id, 0, 1, nil, Company.photos[0].sizes[2].photo.persistent_id,'CerNer Company\n\nChat ID : ['..msg.chat_id..']\nUser ID : ['..msg.sender_user_id..']\nRank : ['..rank..']\nTotal Msgs : '..Msgs..'\nTD ID : '..TD_ID..'\n@CerNerCompany')
+else
+sendText(msg.chat_id, msg.id,  '`CerNer Company`!!\n\nChat ID : ['..msg.chat_id..']\nUser ID : ['..msg.sender_user_id..']\nRank : ['..rank..']\nTotal Msgs : '..Msgs..'\nTD ID : '..TD_ID..'\n@CerNerCompany', 'md')
+print '                      Not Photo                      ' 
 end
 end
-GetChat(msg.chat_id,GetName)
+tdbot_function ({_ ="getUserProfilePhotos", user_id = msg.sender_user_id, offset =0, limit = 100000000 },GetPro, nil)
+end
+end
+if cerner and cerner:match('^getpro (%d+)') then
+local offset = tonumber(cerner:match('^getpro (%d+)'))
+if tonumber(offset) < 1 then
+sendText(msg.chat_id, msg.id, 'لطفا عددی بزرگتر از 0  بکار ببرید', 'md')
+else
+ if offset > 100 then
+sendText(msg.chat_id, msg.id,'اوه شت :( \n من بیشتر از 50 عکس پروفایل شما را نمیتوانم ارسال کنم ','md')
+else
+function GetPro(CerNer, Company)
+ if Company.photos[0] then
+sendPhoto(msg.chat_id, msg.id, 0, 1, nil, Company.photos[0].sizes[2].photo.persistent_id,'Photo Size : '.. Company.photos[0].sizes[2].photo.size)
+else
+sendText(msg.chat_id, msg.id, 'شما عکس پروفایل '..offset..' ندارید', 'md')
+end
+end
+end
+tdbot_function ({_ ="getUserProfilePhotos", user_id = msg.sender_user_id, offset = offset-1, limit = 1 },GetPro, nil)
+end
 end
 if cerner == 'me' then
 local function GetName(CerNer, Company)
 if is_sudo(msg) then
-rank = 'Sudo' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "Sudo")..'' 
 elseif is_Owner(msg) then
-rank = 'Owner' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "Owner")..'' 
 elseif is_Mod(msg) then
-rank = 'Admin' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "ADMIN")..''
 elseif is_Vip(msg) then
-rank = 'Vip' 
+rank =  ''..(redis:get('rank'..msg.sender_user_id) or "VIP")..''
 elseif not is_Mod(msg) then
 rank = ''..(redis:get('rank'..msg.sender_user_id) or "Member")..''
 end
@@ -2431,6 +2614,10 @@ sendText(msg.chat_id,msg.id,  '*Group Rules:*\n'..rules..'\n\n@CerNerCompany', '
 else
 sendText(msg.chat_id, msg.id, '*Rules Not Set*\n\n@CerNerCompany', 'md')
 end
+end
+if cerner == 'games' then
+local games = {'Corsairs','LumberJack','MathBattle'}
+sendGame(msg.chat_id, msg.id, 166035794, games[math.random(#games)])
 end
 if cerner == 'ping' then
 txts = [[PONG
