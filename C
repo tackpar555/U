@@ -26,6 +26,13 @@ get_sub() {
     done
 }
 
+make_progress() {
+exe=`lua <<-EOF
+    print(tonumber($1)/tonumber($2)*100)
+EOF
+`
+    echo ${exe:0:4}
+}
 
 function get_tgcli_version() {
 	echo "$tgcli_version"
