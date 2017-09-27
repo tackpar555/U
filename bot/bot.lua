@@ -2658,6 +2658,13 @@ end
 if cerner == 'help' then
 if is_sudo(msg) then
 text =[[ •• راهنمای کار با کرنر برای مقام صاحب ربات
+
+• setsudo [user]
+> تنظیم کاربر به عنوان کمک مدیر ربات
+
+• remsudo [user]
+> حذف کاربر از لیست کمک مدیر ربات 
+
 • add
 > افزودن گروه به لیست گروه های مدیریتی 
 
@@ -2923,6 +2930,10 @@ mute photo
 > لغو بیصدا 
 مثال : 
 unmute photo
+
+• getpro [num] > limit 50
+> دریافت 50 پروفایل خود 
+
 ]]
 elseif is_Mod(msg) then
 text =[[• • راهنمای کار با کرنر برای مقام کمک مدیر
@@ -3027,21 +3038,28 @@ unmute photo
 
 clean restricts
 > حذف کابران محدود شده از لیست 
+
+• getpro [num] > limit 50
+> دریافت 50 پروفایل خود 
+
 ]]
 elseif not is_Mod(msg) then
 text =[[شما میتوانید از 
 
-id
+• id
 
-me
+• me
 
-about me
+• about me
 
-ping
+• ping
 
-link
+• link
 
-rules
+• rules
+
+• getpro [num] > limit 50
+> دریافت 50 پروفایل خود 
 
 استفاده کنید]]
 end
