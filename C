@@ -3,9 +3,20 @@
 tgcli_version="170904-nightly"
 luarocks_version=2.4.2
 lualibs=(
+'luasec'
+'luarepl'
+'lbase64 20120807-3'
+'luafilesystem'
+'lub'
+'luaexpat'
 'redis-lua'
+'lua-cjson'
+'fakeredis'
+'xml'
+'feedparser'
 'serpent'
 )
+
 today=`date +%F`
 
 get_sub() {
@@ -33,7 +44,6 @@ EOF
 `
     echo ${exe:0:4}
 }
-
 function get_tgcli_version() {
 	echo "$tgcli_version"
 }
@@ -92,10 +102,10 @@ function login_bot() {
 }
 
 function update_bot() {
-  git checkout C/  bot/ libs/
+  git checkout launch.sh plugins/ lang/ bot/ libs/
   git pull
-  echo chmod +x launch.sh | /bin/bash
-  version=$(echo "./launch.sh tgcli_version" | /bin/bash)
+  echo chmod +x C | /bin/bash
+  version=$(echo "./C tgcli_version" | /bin/bash)
   update_bot_to $version
 }
 
@@ -107,9 +117,9 @@ function update_bot_to() {
 function show_logo_slowly() {
     seconds=0.009
     logo=(
-    "CerNer Cleaner By Amir Bagheri : CerNer Company"
+    "CerNer Anti Spam By Amir Bagheri : CerNer Company"
     )
-    printf "\033[38;5;208m\t"
+    printf "\031[38;5;208m\t"
     local i x
     for i in ${!logo[@]}; do
         for ((x=0;x<${#logo[$i]};x++)); do
@@ -124,8 +134,8 @@ function show_logo_slowly() {
 function show_logo() {
     #Adding some color. By @iicc1 :D
     echo -e "\033[38;5;208m"
-    echo -e "CerNer Cleaner By Amir Bagheri : CerNer Company"
-    echo -e "\n\e[36m"
+    echo -e "CerNer ANTI SPAM By Amir Bagheri : CerNer Company"
+    echo -e "\n\e[30m"
 }
 
 case $1 in
@@ -157,5 +167,4 @@ esac
 show_logo
 start_bot $@
 exit 0
- 
  
