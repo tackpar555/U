@@ -28,8 +28,9 @@ After installing the dependencies, lets install the bot:
  cd Anti-*
  chmod +x C
  ./C install
- ./c login # Will ask you for a phone number & confirmation code.
- ./C
+ ./C config
+ ./c loginTD # Will ask you for a phone number & confirmation code.
+ ./C start
 ```
 Developer:
 [Amir Bagheri](https://github.com/Codelua)
