@@ -1563,14 +1563,14 @@ end
 resolve_username(username,PromoteByUsername)
 end
 ----------------------
-if cerner1 and cerner1:match('^setdescription (.*)') then
-local description = cerner1:match('^setdescription (.*)')
+if cerner1 and cerner1:match('^[Ss]etdescription (.*)') then
+local description = cerner1:match('^[Ss]etdescription (.*)')
 changeDes(msg.chat_id,description)
 local text = [[description Has Been Changed To ]]..description
 sendText(msg.chat_id, msg.id, text..txt, 'md')
 end
-if cerner1 and cerner1:match('^setname (.*)') then
-local Title = cerner1:match('^setname (.*)')
+if cerner1 and cerner1:match('^[Ss]etname (.*)') then
+local Title = cerner1:match('^[Ss]etname (.*)')
 local function GetName(CerNer, Company)
 local Hash = 'StatsGpByName'..msg.chat_id
 local ChatTitle = Company.title
