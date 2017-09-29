@@ -1274,7 +1274,7 @@ getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),SetOwner_Rep)
 end
 end
 if cerner == 'git pull' then
-text = io.popen("git pull"):read('*all')
+text = io.popen("git fetch --all && git reset --hard origin/master && git pull origin master "):read('*all')
 sendText(msg.chat_id, msg.id,text..txt,  'md')
 end
 if cerner and cerner:match('^setowner (%d+)') then
@@ -1571,12 +1571,15 @@ sendText(msg.chat_id, msg.id, text..txt, 'md')
 end
 if cerner1 and cerner1:match('^setname (.*)') then
 local Title = cerner1:match('^setname (.*)')
+local function GetName(CerNer, Company)
 local Hash = 'StatsGpByName'..msg.chat_id
 local ChatTitle = Company.title
 redis:set(Hash,ChatTitle)
 changeChatTitle(msg.chat_id,Title)
 local text = [[Group Name Has Been Changed To ]]..Title
 sendText(msg.chat_id, msg.id, text..txt, 'md')
+end
+GetChat(msg.chat_id,GetName)
 end
 if cerner and cerner:match('^promote (%d+)') then
 local user = cerner:match('promote (%d+)')
