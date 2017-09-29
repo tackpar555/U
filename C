@@ -18,25 +18,46 @@ lualibs=(
 )
 
 today=`date +%F`
-
+install=(
+'libreadline-dev'
+'libconfig-dev' 
+'libssl-dev' 
+'lua5.2'
+'libstdc++9'
+'ibconfig++9v5 libstdc++6'
+'libstdc++6'
+'liblua5.2-dev'
+'libevent-dev'
+'libpython-dev'
+'make'
+'unzip'
+'git'
+'redis-server'
+'g++'
+'liblua5.2-dev'
+'git'
+'make'
+'unzip'
+'curl'
+'libcurl4-gnutls-dev'
+)
 get_sub() {
-    local flag=false c count cr=$'\r' nl=$'\n'
-    while IFS='' read -d '' -rn 1 c; do
-        if $flag; then
-            printf '%c' "$c"
-        else
-            if [[ $c != $cr && $c != $nl ]]; then
-                count=0
-            else
-                ((count++))
-                if ((count > 1)); then
-                    flag=true
-                fi
-            fi
-        fi
-    done
+local flag=false c count cr=$'\r' nl=$'\n'
+while IFS='' read -d '' -rn 1 c; do
+ if $flag; then
+ printf '%c' "$c"
+  else
+if [[ $c != $cr && $c != $nl ]]; then
+  count=0
+ else
+((count++))
+ if ((count > 1)); then
+flag=true
+fi
+fi
+fi
+ done
 }
-
 make_progress() {
 exe=`lua <<-EOF
     print(tonumber($1)/tonumber($2)*100)
@@ -44,25 +65,33 @@ EOF
 `
     echo ${exe:0:4}
 }
-function get_tgcli_version() {
+ get_tgcli_version() {
 	echo "$tgcli_version"
 }
-
-function download_libs_lua() {
+ download_libs_lua() {
     if [[ ! -d "logs" ]]; then mkdir logs; fi
     if [[ -f "logs/logluarocks_${today}.txt" ]]; then rm logs/logluarocks_${today}.txt; fi
     local i
     for ((i=0;i<${#lualibs[@]};i++)); do
         printf "\r\33[2K"
-        printf "\rCerNerCompany: wait... [`make_progress $(($i+1)) ${#lualibs[@]}`%%] [$(($i+1))/${#lualibs[@]}] ${lualibs[$i]}"
+        printf "\r• Installing Luarocks: wait... [`make_progress $(($i+1)) ${#lualibs[@]}`%%] [$(($i+1))/${#lualibs[@]}] ${lualibs[$i]}"
         ./.luarocks/bin/luarocks install ${lualibs[$i]} &>> logs/logluarocks_${today}.txt
     done
     sleep 0.2
-    printf "\nLogfile created: $PWD/logs/logluarocks_${today}.txt\nDone\n"
-    rm -rf luarocks-2.2.2*
+sleep 0.2
+printf "\n• Logfile created: $PWD/logs/logluarocks_${today}.txt\nDone\n"
+rm -rf luarocks-2.2.2*
 }
-
-function configure() {
+Getinstall(){
+local i
+for ((i=0;i<${#install[@]};i++)); do
+ printf "\r\33[2K"
+printf "\r •• installing wait... [`make_progress $(($i+1)) ${#install[@]}`%%] [$(($i+1))/${#install[@]}] ${install[$i]}"
+sudo apt-get install ${install[$i]} &>> /dev/null
+ done
+printf "\n• Done script Installed!\n@Channel : @CerNerCompany"
+}
+ config() {
     dir=$PWD
     wget http://luarocks.org/releases/luarocks-${luarocks_version}.tar.gz &>/dev/null
     tar zxpf luarocks-${luarocks_version}.tar.gz &>/dev/null
@@ -71,100 +100,101 @@ function configure() {
         ./configure --prefix=$dir/.luarocks --sysconfdir=$dir/.luarocks/luarocks --force-config
         make bootstrap
     else
-        ./configure --prefix=$dir/.luarocks --sysconfdir=$dir/.luarocks/luarocks --force-config &>/dev/null
-        make bootstrap &>/dev/null
-    fi
-    cd ..; rm -rf luarocks*
-    if [[ ${1} != "--no-download" ]]; then
-        download_libs_lua
-        wget --progress=bar:force https://valtman.name/files/telegram-bot-${tgcli_version}-linux 2>&1 | get_sub
-        mv telegram-bot-${tgcli_version}-linux telegram-bot; chmod +x telegram-bot
-    fi
-    for ((i=0;i<101;i++)); do
-        printf "\rConfiguring... [%i%%]" $i
-        sleep 0.007
-    done
-    mkdir $HOME/.telegram-bot; cat <<EOF > $HOME/.telegram-bot/config
+./configure --prefix=$dir/.luarocks --sysconfdir=$dir/.luarocks/luarocks --force-config &>/dev/null
+make bootstrap &>/dev/null
+fi
+cd ..; rm -rf luarocks*
+if [[ ${1} != "--no-download" ]]; then
+download_libs_lua
+wget --progress=bar:force https://valtman.name/files/telegram-bot-${tgcli_version}-linux 2>&1 | get_sub
+mv telegram-bot-${tgcli_version}-linux tg; chmod +x tg
+fi
+for ((i=0;i<101;i++)); do
+printf "\rConfiguring... [%i%%]" $i
+sleep 0.007
+done
+mkdir $HOME/.telegram-bot; cat <<EOF > $HOME/.telegram-bot/config
 default_profile = "main";
 main = {
-  lua_script = "$HOME/Anti-Spam/bot/bot.lua";
+lua_script = "$HOME/Anti-Spam/bot/bot.lua";
 };
 EOF
-    printf "\nDone\n"
+printf "\nDone\n"
+}
+launch() {
+./tg | grep -v "{"
 }
 
-function start_bot() {
-    ./telegram-bot | grep -v "{"
+loginTD() {
+./tg -p main --login --phone=${1}
 }
-
-function login_bot() {
-    ./telegram-bot -p main --login --phone=${1}
+function gitpull() {
+git checkout C  bot/ libs/
+git pull
+echo chmod +x C | /bin/bash
+version=$(echo "./C tgcli_version" | /bin/bash)
+updateTD $version
 }
-
-function update_bot() {
-  git checkout launch.sh plugins/ lang/ bot/ libs/
-  git pull
-  echo chmod +x C | /bin/bash
-  version=$(echo "./C tgcli_version" | /bin/bash)
-  update_bot_to $version
+function updateTD() {
+wget --progress=bar:force https://valtman.name/files/telegram-bot-${1}-linux 2>&1 | get_sub
+mv telegram-bot-${1}-linux tg; chmod +x tg
 }
-
-function update_bot_to() {
-	wget --progress=bar:force https://valtman.name/files/telegram-bot-${1}-linux 2>&1 | get_sub
-    mv telegram-bot-${1}-linux telegram-bot; chmod +x telegram-bot
+starting() {
+start=(
+"ربات با موفقیت اجرا شد !"
+)
+printf "${start}"
+printf "\n"
 }
-
-function show_logo_slowly() {
-    seconds=0.009
-    logo=(
-    "CerNer Anti Spam By Amir Bagheri : CerNer Company"
-    )
-    printf "\031[38;5;208m\t"
-    local i x
-    for i in ${!logo[@]}; do
-        for ((x=0;x<${#logo[$i]};x++)); do
-            printf "${logo[$i]:$x:1}"
-            sleep $seconds
-        done
-        printf "\n\t"
-    done
-    printf "\n"
+CONFIG() {
+TXT=(
+"درحال نصب لواروکس و پیکربندی "
+)
+printf "${TXT}"
+printf "\n"
 }
-
-function show_logo() {
-    #Adding some color. By @iicc1 :D
-    echo -e "\033[38;5;208m"
-    echo -e "CerNer ANTI SPAM By Amir Bagheri : CerNer Company"
-    echo -e "\n\e[30m"
+warning() {
+TXT=(
+"دستور وارد شده صحیح نیست !  لطفا از \n./C help استفاده کنید!"
+)
+printf "${TXT}"
+printf "\n"
 }
-
 case $1 in
-    install)
-    	show_logo_slowly
-    	configure ${2}
-    exit ;;
-    login)
-        echo "Please enter your phone number: "
-        read phone_number
-        login_bot ${phone_number}
-    exit ;;
-    update)
-		update_bot
-		exit ;;
-	tgcli_version)
-		get_tgcli_version
-	exit ;;
-	help)
-		echo "Commands available:"
-		echo "	install - First command to install all repos and download binary."
-		echo "	login - Access into your telegram account."
-		echo "	update-to - Write a version to update binary (from vysheng website)."
-		echo "	help - Shows this message."
-	exit ;;
+config)
+CONFIG
+config ${2}
+exit ;;
+loginTD)
+echo "لطفا شماره خود را بدون  فاصله وارد کنید"
+read phone_number
+loginTD ${phone_number}
+echo 'عملیات  انجام شد !'
+exit;;
+install)
+Getinstall
+exit;;
+start)
+starting
+launch
+exit;;
+update)
+gitpull
+updateTD
+exit ;;
+tgcli_version)
+get_tgcli_version
+exit ;;
+help)
+echo "راهنمای اجرای سورس کرنر :  ••  "
+echo "install -  نصب پکیج های مورد نیاز • "
+echo "config - پیکربندی ودانلود  تیجی • "
+echo "start - راه اندازی ربات   • "
+echo "loginTD - وارد شدن به شماره • "
+echo "update - اپدیت سورس • "
+echo "help - راهنما • "
+exit ;;
 esac
-
-
-show_logo
-start_bot $@
+warning
 exit 0
  
