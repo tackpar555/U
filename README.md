@@ -29,7 +29,9 @@ After installing the dependencies, lets install the bot:
  chmod +x C
  ./C install
  ./C config
- ./c loginTD # Will ask you for a phone number & confirmation code.
+ ./C login-Cli # Will ask you for a phone number & confirmation code.
+ 
+ ./C login-Api
  ./C start
 ```
 Developer:
