@@ -164,7 +164,7 @@ exit ;;
 login-Cli)
 echo "لطفا شماره خود را بدون  فاصله وارد کنید"
 read phone_number
-loginApi ${phone_number}
+loginCli ${phone_number}
 echo 'عملیات  انجام شد !'
 exit;;
 login-Api)
