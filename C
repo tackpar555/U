@@ -125,8 +125,11 @@ launch() {
 ./tg | grep -v "{"
 }
 
-loginTD() {
+loginCli() {
 ./tg -p main --login --phone=${1}
+} 
+loginApi() {
+./tg -p main --login --bot=${1}
 }
 function gitpull() {
 git checkout C  bot/ libs/
@@ -165,10 +168,16 @@ config)
 CONFIG
 config ${2}
 exit ;;
-loginTD)
+login-Cli)
 echo "لطفا شماره خود را بدون  فاصله وارد کنید"
 read phone_number
-loginTD ${phone_number}
+loginApi ${phone_number}
+echo 'عملیات  انجام شد !'
+exit;;
+login-Api)
+echo "لطفا توکن ربات خود را ارسال کنید !"
+read TOKEN
+loginApi ${TOKEN}
 echo 'عملیات  انجام شد !'
 exit;;
 install)
@@ -190,7 +199,8 @@ echo "راهنمای اجرای سورس کرنر :  ••  "
 echo "install -  نصب پکیج های مورد نیاز • "
 echo "config - پیکربندی ودانلود  تیجی • "
 echo "start - راه اندازی ربات   • "
-echo "loginTD - وارد شدن به شماره • "
+echo "login-Cli - لوگین شدن به عنوان ربات cli "
+echo "login-Api - لوگین شدن به عنوان ربات Api "
 echo "update - اپدیت سورس • "
 echo "help - راهنما • "
 exit ;;
