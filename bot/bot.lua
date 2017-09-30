@@ -6,6 +6,8 @@ https = require "ssl.https"
 CerNerCompany = '`اختصاصی  کمپانی کرنر `'
 SUDO_ID = {363936960}
 Full_Sudo = {363936960}
+Plan1 = 2592000
+Plan2 = 7776000
 function is_sudo(msg)
   local var = false
  for v,user in pairs(SUDO_ID) do
@@ -203,6 +205,32 @@ chat_id = chat_id,
 title = title
 }, dl_cb, nil))
 end
+function sendInlineQueryResultMessage(chatid, replytomessageid, disablenotification, frombackground, queryid, resultid)
+  assert (tdbot_function ({
+    _ = 'sendInlineQueryResultMessage',
+    chat_id = chatid,
+    reply_to_message_id = replytomessageid,
+    disable_notification = disablenotification,
+    from_background = frombackground,
+    query_id = queryid,
+    result_id = tostring(resultid)
+  }, dl_cb,nil))
+end
+function getInlineQueryResults(botuserid, chatid, lat, lon, query, off,cb)
+  assert (tdbot_function ({
+    _ = 'getInlineQueryResults',
+    bot_user_id = botuserid,
+    chat_id = chatid,
+    user_location = {
+      _ = 'location',
+      latitude = lat,
+      longitude = lon
+    },
+    query = tostring(query),
+    offset = tostring(off)
+  }, cb,nil))
+end
+
 function mute(chat_id, user_id, Restricted, right)
   local chat_member_status = {}
  if Restricted == 'Restricted' then
@@ -1154,9 +1182,9 @@ if cerner == 'rem' then
 local function GetName(CerNer, Company)
 redis:del("ExpireData:"..msg.chat_id)
 redis:srem("group:",msg.chat_id)
-redis:del("OwnerList:",msg.chat_id)
-redis:del("ModList:",msg.chat_id)
-redis:del('StatsGpByName'..msg.chat_id,Company.title)
+redis:del("OwnerList:"..msg.chat_id)
+redis:del("ModList:"..msg.chat_id)
+redis:del('StatsGpByName'..msg.chat_id)
 redis:del('CheckExpire:'..msg.chat_id)
  if not redis:get('CheckBot:'..msg.chat_id) then
 local text = '• Group `'..Company.title..'` is *Already* Removed'
@@ -1170,6 +1198,48 @@ redis:del(Hash)
 end
 end
 GetChat(msg.chat_id,GetName)
+end
+if cerner1 and cerner1:match('^plan1 (-100)(%d+)$') then
+local chat_id = cerner1:match('^plan1 (.*)$')
+if redis:get('CheckExpire:'..msg.chat_id) then
+redis:set('CheckExpire:'..msg.chat_id,true)
+end
+redis:setex("ExpireData:"..chat_id,Plan1,true)
+sendText(msg.chat_id,msg.id,'پلن 1 با موفقيت براي گروه '..chat_id..' فعال شد\nاين گروه تا 30 روز ديگر اعتبار دارد! ( 1 ماه )','md')
+sendText(chat_id,0,"ربات با موفقيت فعال شد و تا 30 روز ديگر اعتبار دارد!",'md')
+end
+------------------Charge Plan 2--------------------------
+if cerner and cerner:match('^plan2 (-100)(%d+)$') then
+local chat_id = cerner:match('^plan2 (.*)$')
+redis:setex("ExpireData:"..chat_id,Plan2,true)
+sendText(msg.chat_id,msg.id,'پلن 2 با موفقيت براي گروه '..chat_id..' فعال شد\nاين گروه تا 90 روز ديگر اعتبار دارد! ( 3 ماه )','md')
+sendText(chat_id,0,"ربات با موفقيت فعال شد و تا 90 روز ديگر اعتبار دارد! ( 3 ماه )",'md')
+if redis:get('CheckExpire:'..msg.chat_id) then
+redis:set('CheckExpire:'..msg.chat_id,true)
+end
+end
+-----------------Charge Plan 3---------------------------
+if cerner and cerner:match('^plan3 (-100)(%d+)$') then
+local chat_id = cerner:match('^plan3 (.*)$')
+redis:set("ExpireData:"..chat_id,true)
+sendText(msg.chat_id ,msg.id,''..chat_id..'_پلن شماره 3 براي گروه مورد نظر فعال شد!_','md')
+sendText(chat_id,0,"_پلن شماره ? براي اين گروه تمديد شد \nمدت اعتبار پنل (نامحدود)!_",'md')
+if redis:get('CheckExpire:'..msg.chat_id) then
+redis:set('CheckExpire:'..msg.chat_id,true)
+end
+end
+-----------Leave----------------------------------
+if cerner1 and cerner1:match('^leave (-100)(%d+)$') then
+local chat_id = cerner1:match('^leave (.*)$') 
+redis:del("ExpireData:"..chat_id)
+redis:srem("group:",chat_id)
+redis:del("OwnerList:"..chat_id)
+redis:del("ModList:"..chat_id)
+redis:del('StatsGpByName'..chat_id)
+redis:del('CheckExpire:'..chat_id)
+sendText(msg.chat_id,msg.id,'ربات با موفقيت از گروه '..chat_id..' خارج شد.'..txt,'md')
+sendText(chat_id,0,'ربات به دستور سازنده از گروه خارج میشود '..txt,'md')
+Left(chat_id,TD_ID, "Left")
 end
 if cerner == 'groups' then
 local list = redis:smembers('group:')
@@ -1691,36 +1761,6 @@ deleteMessagesFromUser(msg.chat_id,user_id)
 sendText(msg.chat_id, msg.id, text..txt, 'md')
 end
 end
--------COMING Soon..-----------------
---[[if cerner == 'panel' then
-function GetPanel(CerNer,Company)
-if Company.results and Company.results[0] then
-  tdbot_function ({
-_ = "sendInlineQueryResultMessage",
-chat_id = msg.chat_id,
-reply_to_message_id = msg.id,
-disable_notification = 0,
-from_background = 1,
-query_id = Company.inline_query_id,
-result_id = Company.results[0]
-}, dl_cb, nil)
-else
-sendText(msg.chat_id, msg.id,  'اوه شت :(\nپیامی از طرف ربات اینلاین دریافت نکردم ', 'md')
-end
-end
- tdbot_function ({
-  _ = 'getInlineQueryResults',
-    bot_user_id = 458237033,
-    chat_id = msg.chat_id,
-    user_location = {
-_ = "location",
-latitude = 0,
-longitude = 0
-},
-query = tostring(msg.chat_id),
-offset = 0
-}, GetPanel, nil)
-       end]]---
 ---------------------------------
 if cerner == 'viplist' then
 local list = redis:smembers('Vip:'..msg.chat_id)
@@ -1754,14 +1794,13 @@ RemoveFromBanList(msg.chat_id, v.user_id)
 end
 end
 sendText(msg.chat_id, msg.id,  '• All User Banned Has Been Cleaned From BanList'..txt, 'md')
-getChannelMembers(msg.chat_id, 0, 200, "Banned",Clean)
+getChannelMembers(msg.chat_id, 0, 2000, "Banned",Clean)
 end
  if cerner == 'clean mutelist'  then
-local function Clean(CerNer,Company)
-for k,v in pairs(Company.members) do
+local mute = redis:smembers('MuteList:'..msg.chat_id)
+for k,v in pairs(mute) do
 redis:del('MuteList:'..msg.chat_id)
-mute(msg.chat_id, v.user_id,'Restricted',   {1, 1, 0, 0, 0,0})
-end
+mute(msg.chat_id, v,'Restricted',   {1, 1, 0, 0, 0,0})
 end
 sendText(msg.chat_id, msg.id,  '• All User Muted Has Been Cleaned From MuteList'..txt, 'md')
 end
@@ -1876,6 +1915,21 @@ end
 redis:srem('MuteList:'..msg.chat_id,mutes)
 mute(msg.chat_id, mutes,'Restricted',   {0, 0, 0, 0, 0,1})
 sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..mutes.."` *Has Been Unmuted* *\nRestricted*"..txt,  'md' )
+end
+if cerner == 'setlink'  and tonumber(msg.reply_to_message_id) > 0 then
+function GeTLink(CerNer,Company)
+local getlink = Company.content.text or Company.content.caption
+for link in getlink:gmatch("(https://t.me/joinchat/%S+)") or getlink:gmatch("t.me", "telegram.me") do
+redis:set('Link:'..msg.chat_id,link)
+print(link)
+end
+sendText(msg.chat_id, msg.id,"Done ! "..txt,  'md' )
+end
+getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),GeTLink)
+end
+if cerner == 'remlink' then
+redis:del('Link:'..msg.chat_id)
+sendText(msg.chat_id, msg.id,"Link Removed "..txt,  'md' )
 end
 if cerner == 'ban' and tonumber(msg.reply_to_message_id) > 0 then
 function BanByReply(CerNer,Company)
@@ -2541,7 +2595,7 @@ sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n
 end
 end
 --------------------------------------------
-if cerner == 'lock tgservise' then
+if cerner == 'lock tgservice' then
 if redis:get('Lock:TGservise:'..msg.chat_id) then
 sendText(msg.chat_id, msg.id, '• `Lock` *TGservise*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
 else
@@ -2549,7 +2603,7 @@ sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Enable`\n\n@CerN
 redis:set('Lock:TGservise:'..msg.chat_id,true)
 end
 end
-if cerner == 'unlock tgservise' then
+if cerner == 'unlock tgservice' then
 if redis:get('Lock:TGservise:'..msg.chat_id) then
 sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Disable`\n\n@CerNerCompany' , 'md')
 redis:del('Lock:TGservise:'..msg.chat_id)
@@ -2792,17 +2846,14 @@ if Company.username then
     user_name = ec_name(Company.first_name)
    end
 local warnhash = redis:hget(msg.chat_id..':warn',Company.sender_user_id) or 1
-local max_warn = tonumber(redis:get('max_warn:'..msg.chat_id) or 5)
-if tonumber(warnhash) == tonumber(max_warn) then
+if tonumber(warnhash) == tonumber(warn) then
 KickUser(msg.chat_id,Company.sender_user_id)
 RemoveFromBanList(msg.chat_id,Company.sender_user_id)
-text= "User  *"..Company.sender_user_id.."* has been *kicked because max warning \nNumber of warn :*"..warnhash.."/"..max_warn..""
+text= "User  *"..Company.sender_user_id.."* has been *kicked because max warning \nNumber of warn :*"..warnhash.."/"..warn..""
 redis:hdel(hashwarn,Company.sender_user_id, '0')
 SendMetion(msg.chat_id,Company.sender_user_id, msg.id, text, 7, string.len(Company.sender_user_id))
-
 else
 local warnhash = redis:hget(msg.chat_id..':warn',Company.sender_user_id) or 1
-local max_warn = tonumber(redis:get('max_warn:'..msg.chat_id) or 5)
  redis:hset(hashwarn,Company.sender_user_id, tonumber(warnhash) + 1)
 text= "کاربر  "..Company.sender_user_id.." شما یک اخطار دریافت کردید\nتعداد اخطار های شما : "..warnhash.."/"..warn..""
 SendMetion(msg.chat_id,Company.sender_user_id, msg.id, text, 7, string.len(Company.sender_user_id))
@@ -3278,7 +3329,7 @@ setwelcome سلام {first} {last} {username} به گروه خوش امدی
 • setfloodtime [num]
 > تنظیم زمان پیام رگباری
 
-• setlink [link]
+• setlink [link] or [reply]
 > تنظیم لینک گروه 
 
 • setrules [rules] 
@@ -3293,7 +3344,7 @@ setwelcome سلام {first} {last} {username} به گروه خوش امدی
 lock bot 
 قفل ورود ربات
 
- • unlock [link]/[spam][edit]/[tag]/[hashtag]/[inline]/[video_note]/[pin]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
+ • unlock [link]/[spam]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[pin]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
 بازکردن قفل 
 مثال : 
 unlock bot 
@@ -3351,7 +3402,7 @@ text =[[• • راهنمای کار با کرنر برای مقام کمک م�
 {username} : بکار بردن یوزرنیم
 {rules} : بکار بردن قوانین
 مثال :
-setwelcome سلام }first} {last} {username} به گروه خوش امدی 
+setwelcome سلام {first} {last} {username} به گروه خوش امدی 
 
 • muteuser [user] or [reply] or [username]
 > محدود کردن کاربر  
@@ -3419,7 +3470,7 @@ setwelcome سلام }first} {last} {username} به گروه خوش امدی
 lock bot 
 قفل ورود ربات
 
- • unlock [link]/[spam][edit]/[tag]/[hashtag]/[inline]/[video_note]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
+ • unlock [link]/[spam]/[edit]/[tag]/[hashtag]/[inline]/[video_note]/[bot]/[forward]/[arabic]/[english]/[tgservice]/[sticker]
 بازکردن قفل 
 مثال : 
 unlock bot 
@@ -3479,10 +3530,9 @@ text =[[شما میتوانید از
 
 استفاده کنید]]
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text..txt, 'html')
 end
 end
-
 
 
 ------CerNer Company---------.
