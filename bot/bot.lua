@@ -3566,4 +3566,4 @@ if not redis:sismember("ChatSuper:Bot",msg.chat_id) then
 redis:sadd("ChatSuper:Bot",msg.chat_id);end;end;end;end;end;function tdbot_update_callback(data);if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then;showedit(data.message,data);vardump(data);elseif (data._== "updateMessageEdited") then;vardump(data);data = data;local function edit(sepehr,amir,hassan);showedit(amir,data);end ;tdbot_function ({_ = "openChat",chat_id = data.chat_id}, dl_cb, nil) tdbot_function ({_ = "getMessage", chat_id = data.chat_id,message_id = data.message_id }, edit, nil)assert (tdbot_function ({ _ = 'openMessageContent',chat_id = data.chat_id,message_id = data.message_id}, dl_cb, nil));require('./bot/CerNerTeam');tdbot_function ({_="getChats",offset_order="9223372036854775807",offset_chat_id=0,limit=20}, dl_cb, nil)
 end
 end
----End Version 4
+---End Version 4.1 beta
