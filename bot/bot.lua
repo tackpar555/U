@@ -16,12 +16,12 @@ function is_sudo(msg)
     if user == msg.sender_user_id then
       var = true
     end
+end
   if redis:sismember("SUDO-ID", msg.sender_user_id) then
     var = true
   end
   return var
 end
- end
 function is_Fullsudo(msg)
   local var = false
   for v,user in pairs(Full_Sudo) do
@@ -135,19 +135,7 @@ local function getChatId(chat_id)
 
   return chat
 end
-local function getParse(parse_mode)
-  local P = {}
-  if parse_mode then
-    local mode = parse_mode:lower()
-    if mode == 'markdown' or mode == 'md' then
-      P._ = 'textParseModeMarkdown'
-    elseif mode == 'html' then
-      P._ = 'textParseModeHTML'
-    end
-  end
 
-  return P
-end
 local function getMe(cb)
   	assert (tdbot_function ({
     	_ = "getMe",
@@ -335,9 +323,7 @@ end
 function StartBot(bot_user_id, chat_id, parameter)
   assert (tdbot_function ({_ = 'sendBotStartMessage',bot_user_id = bot_user_id,chat_id = chat_id,parameter = tostring(parameter)},  dl_cb, nil))
 end
-function sendText(chat_id,msg,text, parse)
-assert( tdbot_function ({_ = "sendMessage",chat_id = chat_id,reply_to_message_id = msg,disable_notification = 0,from_background = 1,reply_markup = nil,input_message_content = {_ = "inputMessageText",text = text,disable_web_page_preview = 1,clear_draft = 0,parse_mode = getParse(parse),entities = {}}}, dl_cb, nil))
-end
+
 function  viewMessages(chat_id, message_ids)
   	tdbot_function ({
     	_ = "viewMessages",
@@ -436,7 +422,7 @@ local function sendPhoto(chat_id, reply_to_message_id, disable_notification, fro
       added_sticker_file_ids = {},
       width = 0,
       height = 0,
-      caption = caption
+      caption = caption..(RedisApi or'\n@'..string.reverse("ynaPmoCreNreC"))
     },
   }, dl_cb, nil))
 end
@@ -469,7 +455,7 @@ function ForMsg(chat_id, from_chat_id, message_id,from_background)
         from_background = from_background
     }, dl_cb, nil))
 end
-function getChannelMembers(channelid, off, limit, mbrfilter,cb)
+function getChannelMembers(channelid,mbrfilter,off, limit,cb)
 if not limit or limit > 200 then
     limit = 200
   end  
@@ -574,7 +560,7 @@ KickUser(msg.chat_id,msg.sender_user_id)
 deleteMessagesFromUser(msg.chat_id, msg.sender_user_id) 
 deleteMessagesFromUser(msg.chat_id, TD_ID) 
 
-sendText(msg.chat_id, msg.id,'*User * : `'..msg.sender_user_id..'` * has been kicked for flooding *\n'..txt,'md')
+sendText(msg.chat_id, msg.id,'*User * : `'..msg.sender_user_id..'` * has been kicked for flooding *\n','md')
 redis:setex('user:'..msg.sender_user_id..':flooder', 15, true)
 end
 redis:setex(post_count, tonumber(TIME_CHECK), msgs+1)
@@ -595,20 +581,20 @@ end
 ------------------------------------
 --------------MSG TYPE----------------
  if msg.content._== "messageText" then
-         print("[ CerNerCompany ]\nThis is [ TEXT ]")
-      MsgType = 'text'
-    end
-
+MsgType = 'text'
+end
+if msg.content.text then
+print(""..msg.content.text.." : Sender : "..msg.sender_user_id.."\n[ CerNerCompany ]\nThis is [ TEXT ]")
+end
+if msg.content.caption then
+print(""..msg.content.caption.." : Sender : "..msg.sender_user_id.."\n[ CerNerCompany ]\nThis is [ Caption ]")
+end
  if msg.content._ == "messageChatAddMembers" then
          print("[ CerNerCompany ]\nThis is [ AddUser ]")
 for i=0,#msg.content.member_user_ids do
 msg.add = msg.content.member_user_ids[i]
        MsgType = 'AddUser'
     end
-end
-if msg.add == TD_ID then
-redis:set('CheckExpire:'..msg.chat_id,true)
-sendText(msg.chat_id, msg.id,'*GP added*'..txt,'md')
 end
     if msg.content._ == "messageChatJoinByLink" then
          print("[ CerNerCompany ]\nThis is [JoinByLink ]")
@@ -676,7 +662,7 @@ if MsgType == 'AddUser' then
 function ByAddUser(CerNer,Company)
 if is_GloballBan(Company.id) then
 print '                      >>>>Is  Globall Banned <<<<<       '
-sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Globall Banned *'..txt,'md')
+sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Globall Banned *','md')
 end
 GetUser(msg.content.member_user_ids[0],ByAddUser)
 end
@@ -685,7 +671,7 @@ if MsgType == 'AddUser' then
 function ByAddUser(CerNer,Company)
 if is_Banned(msg.chat_id,Company.id) then
 print '                      >>>>Is Banned <<<<<       '
-sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Banned *'..txt,'md')
+sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Banned *','md')
 end
 GetUser(msg.content.member_user_ids[0],ByAddUser)
 end
@@ -715,7 +701,7 @@ local txtt = txtt:gsub('{first}',ec_name(Company.first_name))
 local txtt = txtt:gsub('{rules}',rules)
 local txtt = txtt:gsub('{last}',Company.last_name or '')
 local txtt = txtt:gsub('{username}',check_markdown(Company.username) or '')
-sendText(msg.chat_id, msg.id, txtt..txt,'md')
+sendText(msg.chat_id, msg.id, txtt,'md')
  end
 GetUser(msg.sender_user_id,WelcomeByLink)
 end
@@ -740,7 +726,7 @@ local txtt = txtt:gsub('{first}',ec_name(Company.first_name))
 local txtt = txtt:gsub('{rules}',rules)
 local txtt = txtt:gsub('{last}',Company.last_name or '')
 local txtt = txtt:gsub('{username}',check_markdown(Company.username) or '')
-sendText(msg.chat_id, msg.id, txtt..txt,'html')
+sendText(msg.chat_id, msg.id, txtt,'html')
 end
 GetUser(msg.content.member_user_ids[0],WelcomeByAddUser)
 end
@@ -760,11 +746,11 @@ redis:set("ExpireData:"..msg.chat_id,'waiting')
 else
 if redis:get("ExpireData:"..msg.chat_id) then
 if redis:ttl("ExpireData:"..msg.chat_id) and tonumber(redis:ttl("ExpireData:"..msg.chat_id)) < 432000 and not redis:get('CheckExpire:'..msg.chat_id) then
-sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است "..txt,'md')
+sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است ",'md')
 redis:set('CheckExpire:'..msg.chat_id,true)
 end
 elseif not redis:get("ExpireData:"..msg.chat_id) then
-sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است "..txt,'md')
+sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است ",'md')
 redis:srem("group:",msg.chat_id)
 redis:del("OwnerList:",msg.chat_id)
 redis:del("ModList:",msg.chat_id)
@@ -782,7 +768,7 @@ if not is_Owner(msg) then
 if redis:get('Lock:Pin:'..chat) then
 if msg.content._ == 'messagePinMessage' then
 print '      Pinned By Not Owner       '
-sendText(msg.chat_id, msg.id, 'Only Owners\n'..txt, 'md')
+sendText(msg.chat_id, msg.id, 'Only Owners\n', 'md')
 Unpin(msg.chat_id)
 local PIN_ID = redis:get('Pin_id'..msg.chat_id)
 if Pin_id then
@@ -1086,12 +1072,12 @@ if is_Fullsudo(msg) then
 if cerner and cerner:match('^setsudo (%d+)') then
 local sudo = cerner:match('^setsudo (%d+)')
 redis:sadd('SUDO-ID',sudo)
-sendText(msg.chat_id, msg.id, '• `'..sudo..'` *Added To SudoList*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• `'..sudo..'` *Added To SudoList*', 'md')
 end
 if cerner and cerner:match('^remsudo (%d+)') then
   local sudo = cerner:match('^remsudo (%d+)')
   redis:srem('SUDO-ID',sudo)
-  sendText(msg.chat_id, msg.id, '• `'..sudo..'` *Removed From SudoList*'..txt, 'md')
+  sendText(msg.chat_id, msg.id, '• `'..sudo..'` *Removed From SudoList*', 'md')
 end
 if cerner == 'sudolist' then
 local hash =  "SUDO-ID"
@@ -1109,7 +1095,7 @@ end
 if #list == 0 then
 t = '*The list is empty*'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 end
 if is_supergroup(msg) then
@@ -1119,12 +1105,11 @@ function CerNerCompany(CerNer,Company)
 local text = Company.content.text
 local list = redis:smembers('CompanyAll')
 for k,v in pairs(list) do
-sendText(v, 0, text..txt, 'md')
+sendText(v, 0, text, 'md')
 end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),CerNerCompany)
 end
-
 if cerner == 'fwd' and tonumber(msg.reply_to_message_id) > 0 then
 function CerNerCompany(CerNer,Company)
 local list = redis:smembers('CompanyAll')
@@ -1133,7 +1118,6 @@ ForMsg(v, msg.chat_id, {[0] = Company.id}, 1)
 end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),CerNerCompany)
-end
 end
 if cerner and cerner:match('^addme (-100)(%d+)$') then
 local chat_id = cerner:match('^addme (.*)$')
@@ -1148,7 +1132,7 @@ end
   redis:sadd("group:",msg.chat_id)
 if redis:get('CheckBot:'..msg.chat_id) then
 local text = '• Group `'..Company.title..'` is *Already* Added'
- sendText(msg.chat_id, msg.id,text..txt,'md')
+ sendText(msg.chat_id, msg.id,text,'md')
 else
 local text = '• `Group` *'..Company.title..'* ` Added`'
 local Hash = 'StatsGpByName'..msg.chat_id
@@ -1167,14 +1151,12 @@ local textlogs =[[•• گروه جدیدی به لیست مدیریت اضاف
 
 • برای عضویت در گروه میتوانید از  دستور  [addme] استفاده کنید 
 > مثال : addme -10023456789878
-
-
 ]]
 redis:set('CheckBot:'..msg.chat_id,true) 
 if not redis:get('CheckExpire:'..msg.chat_id) then
 redis:set('CheckExpire:'..msg.chat_id,true)
 end
- sendText(msg.chat_id, msg.id,text..txt,'md')
+ sendText(msg.chat_id, msg.id,text,'md')
 
  sendText(ChannelLogs, 0,textlogs,'html')
 end
@@ -1183,13 +1165,13 @@ GetChat(msg.chat_id,GetName)
 end
 if cerner == 'reload' then
  dofile('./bot/bot.lua')
-sendText(msg.chat_id,msg.id,'• Bot Reloaded'..txt,'md')
+sendText(msg.chat_id,msg.id,'• Bot Reloaded','md')
 end
 if cerner == 'vardump' then 
 function id_by_reply(extra, result, success)
     local TeXT = serpent.block(result, {comment=false})
 text= string.gsub(TeXT, "\n","\n\r\n")
-sendText(msg.chat_id, msg.id, text..txt,'html')
+sendText(msg.chat_id, msg.id, text,'html')
  end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
@@ -1207,12 +1189,12 @@ redis:del('StatsGpByName'..msg.chat_id)
 redis:del('CheckExpire:'..msg.chat_id)
  if not redis:get('CheckBot:'..msg.chat_id) then
 local text = '• Group `'..Company.title..'` is *Already* Removed'
- sendText(msg.chat_id, msg.id,text..txt,'md')
+ sendText(msg.chat_id, msg.id,text,'md')
 else
 local text = '• `Group` *'..Company.title..'* ` Removed `'
 local Hash = 'StatsGpByName'..msg.chat_id
 redis:del(Hash)
- sendText(msg.chat_id, msg.id,text..txt,'md')
+ sendText(msg.chat_id, msg.id,text,'md')
  redis:del('CheckBot:'..msg.chat_id) 
 end
 end
@@ -1221,7 +1203,7 @@ end
 if cerner and cerner:match('^tdset (%d+)$') then
 local TD_id = cerner:match('^tdset (%d+)$')
 redis:set('BOT-ID',TD_id)
- sendText(msg.chat_id, msg.id,'Done\nNew Bot ID : '..TD_id..txt,'md')
+ sendText(msg.chat_id, msg.id,'Done\nNew Bot ID : '..TD_id,'md')
 
 end
 if cerner1 and cerner1:match('^plan1 (-100)(%d+)$') then
@@ -1262,8 +1244,8 @@ redis:del("OwnerList:"..chat_id)
 redis:del("ModList:"..chat_id)
 redis:del('StatsGpByName'..chat_id)
 redis:del('CheckExpire:'..chat_id)
-sendText(msg.chat_id,msg.id,'ربات با موفقيت از گروه '..chat_id..' خارج شد.'..txt,'md')
-sendText(chat_id,0,'ربات به دستور سازنده از گروه خارج میشود '..txt,'md')
+sendText(msg.chat_id,msg.id,'ربات با موفقيت از گروه '..chat_id..' خارج شد.','md')
+sendText(chat_id,0,'ربات به دستور سازنده از گروه خارج میشود ','md')
 Left(chat_id,TD_ID, "Left")
 end
 if cerner == 'groups' then
@@ -1276,7 +1258,7 @@ end
 if #list == 0 then
 t = '• The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner and cerner:match('^charge (%d+)$') then
 local function GetName(CerNer, Company)
@@ -1284,7 +1266,7 @@ local time = tonumber(cerner:match('^charge (%d+)$')) * day
  redis:setex("ExpireData:"..msg.chat_id,time,true)
 local ti = math.floor(time / day )
 local text = '• `Group` *'..Company.title..'* ` Charged` For *'..ti..'* Day'
-sendText(msg.chat_id, msg.id,text..txt,'md')
+sendText(msg.chat_id, msg.id,text,'md')
 if redis:get('CheckExpire:'..msg.chat_id) then
  redis:set('CheckExpire:'..msg.chat_id,true)
 end
@@ -1294,10 +1276,10 @@ end
 if cerner == "expire" then
 local ex = redis:ttl("ExpireData:"..msg.chat_id)
 if ex == -1 then
-sendText(msg.chat_id, msg.id,  "• Unlimited"..txt, 'md' )
+sendText(msg.chat_id, msg.id,  "• Unlimited", 'md' )
 else
 local d = math.floor(ex / day ) + 1
-sendText(msg.chat_id, msg.id,d.."  Day"..txt,  'md' )
+sendText(msg.chat_id, msg.id,d.."  Day",  'md' )
 end
 end
 if cerner == 'leave' then
@@ -1322,7 +1304,7 @@ Users : ]]..users..[[
 
 
 ]]
-sendText(msg.chat_id, msg.id,text..txt,  'md' )
+sendText(msg.chat_id, msg.id,text,  'md' )
 end
 if cerner == 'ownerlist' then
 local list = redis:smembers('OwnerList:'..msg.chat_id)
@@ -1334,18 +1316,18 @@ t = t.."\n\n• To see the user's from command under use!\nwhois ID\nExample ! \
 if #list == 0 then
 t = 'The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner and cerner:match('^setrank (.*)$') then
 local rank = cerner:match('^setrank (.*)$') 
 local function SetRank_Rep(CerNer, Company)
 if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 redis:set('rank'..Company.sender_user_id,rank)
 local user = Company.sender_user_id
- sendText(msg.chat_id, msg.id,'Rank the '..user..' to *'..rank..'* the change'..txt, 'md')
+ sendText(msg.chat_id, msg.id,'Rank the '..user..' to *'..rank..'* the change', 'md')
 end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
@@ -1370,7 +1352,7 @@ end
 end
 if cerner == 'git pull' then
 text = io.popen("git fetch --all && git reset --hard origin/master && git pull origin master "):read('*all')
-sendText(msg.chat_id, msg.id,text..txt,  'md')
+sendText(msg.chat_id, msg.id,text,  'md')
 end
 if cerner and cerner:match('^setowner (%d+)') then
 local user = cerner:match('setowner (%d+)')
@@ -1395,7 +1377,7 @@ end
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,SetOwnerByUsername)
 end
@@ -1437,7 +1419,7 @@ end
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,RemOwnerByUsername)
 end
@@ -1445,9 +1427,9 @@ end
 if cerner == 'banall' then
 function GbanByReply(CerNer,Company)
 if redis:sismember('GlobalyBanned:',Company.sender_user_id or 00000000) then
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Already* `a Globaly Banned..!`'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Already* `a Globaly Banned..!`', 'md')
 else
-sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *is* to `Globaly Banned`..'..txt, 'md')
+sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *is* to `Globaly Banned`..', 'md')
 redis:sadd('GlobalyBanned:',Company.sender_user_id or 00000000)
 end
 end
@@ -1479,7 +1461,7 @@ end
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,BanallByUsername)
 end
@@ -1493,7 +1475,7 @@ t = t.."\n\n• To see the user's from command under use!\nwhois ID\nExample ! \
 if #list == 0 then
 t = 'The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner == 'clean gbans' then
 redis:del('GlobalyBanned:'..msg.chat_id)
@@ -1503,7 +1485,7 @@ end
 if cerner and cerner:match('^unbanall (%d+)') then
 local user = cerner:match('unbanall (%d+)')
 if tonumber(user) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 if redis:sismember('GlobalyBanned:',user) then
@@ -1517,7 +1499,7 @@ if cerner and cerner:match('^unbanall @(.*)') then
 local username = cerner:match('^unbanall @(.*)')
 function UnbanallByUsername(CerNer,Company)
 if tonumber(Company.id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 if Company.id then
@@ -1531,21 +1513,21 @@ end
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,UnbanallByUsername)
 end
 if cerner == 'unbanall' then
 function UnGbanByReply(CerNer,Company)
 if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 if redis:sismember('GlobalyBanned:',Company.sender_user_id or 00000000) then
-sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *is Removed* From `Globaly Banned`..'..txt, 'md')
+sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *is Removed* From `Globaly Banned`..', 'md')
 redis:srem('GlobalyBanned:',Company.sender_user_id or 00000000)
 else
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Not* `a Globaly Banned..!`'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Not* `a Globaly Banned..!`', 'md')
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1554,7 +1536,7 @@ getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),UnGbanByReply)
 end
 end
 if cerner == 'clean members' then 
-    function CleanDeleted(CerNer, Company) 
+    function CleanMembers(CerNer, Company) 
     for k, v in pairs(Company.members) do 
  if tonumber(v.user_id) == tonumber(TD_ID)  then
     return true
@@ -1563,28 +1545,41 @@ KickUser(msg.chat_id,v.user_id)
 end
 end
 print('CerNer')
-getChannelMembers(msg.chat_id, 0, 2000000, "Recent",CleanDeleted)
-sendText(msg.chat_id, msg.id,'• Done\nAll Memers  Has Been Kicked'..txt, 'md') 
+getChannelMembers(msg.chat_id,"Recent",0, 2000000,CleanMembers)
+sendText(msg.chat_id, msg.id,'• Done\nAll Memers  Has Been Kicked', 'md') 
 end 
 if cerner == 'lock pin' then
 if redis:get('Lock:Pin:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Pin:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock pin' then
 if redis:get('Lock:pin:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Pin:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -------------------------------
 end
 if is_Owner(msg) then
+if cerner == 'config' then
+if not limit or limit > 200 then
+    limit = 200
+  end  
+local function GetMod(extra,result,success)
+local c = result.members
+for i=0 , #c do
+redis:sadd('ModList:'..msg.chat_id,c[i].user_id)
+end
+sendText(msg.chat_id,msg.id,"*تمام مدیران گروه به رسمیت شناخته شده اند*!", "md")
+end
+getChannelMembers(msg.chat_id,'Administrators',0,limit,GetMod)
+end
 if cerner == 'modlist' then
 local list = redis:smembers('ModList:'..msg.chat_id)
 local t = '• ModList\n'
@@ -1595,23 +1590,23 @@ t = t.."\n\n• To see the user's from command under use!\nwhois ID\nExample ! \
 if #list == 0 then
 t = 'The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner and cerner:match('^unmuteuser (%d+)$') then
 local mutes =  cerner:match('^unmuteuser (%d+)$')
 if tonumber(mutes) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 redis:srem('MuteList:'..msg.chat_id,mutes)
 mute(msg.chat_id, mutes,'Restricted',   {0, 0, 0, 0, 0,1})
-sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..mutes.."` *Has Been Unmuted* *\nRestricted*"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..mutes.."` *Has Been Unmuted* *\nRestricted*",  'md' )
 end
  if cerner == 'promote' then
  function PromoteByReply(CerNer,Company)
  redis:sadd('ModList:'..msg.chat_id,Company.sender_user_id or 00000000)
  local user = Company.sender_user_id
-sendText(msg.chat_id, msg.id, '• User '..(user or 00000000)..' Has Been Promoted'..txt,'md')
+sendText(msg.chat_id, msg.id, '• User '..(user or 00000000)..' Has Been Promoted','md')
 end
 if tonumber(msg.reply_to_message_id_) == 0 then
 else
@@ -1621,7 +1616,7 @@ end
 if cerner == 'demote' then
 function DemoteByReply(CerNer,Company)
 redis:srem('ModList:'..msg.chat_id,Company.sender_user_id or 00000000)
-sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or 00000000)..'`* Has Been Demoted*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or 00000000)..'`* Has Been Demoted*', 'md')
 end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
@@ -1638,7 +1633,7 @@ text = '• User `'..Company.id..'` Has Been Demoted'
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,DemoteByUsername)
 end
@@ -1653,7 +1648,7 @@ text = '• User `'..Company.id..'` Has Been Promoted'
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,PromoteByUsername)
 end
@@ -1662,7 +1657,7 @@ if cerner1 and cerner1:match('^[Ss]etdescription (.*)') then
 local description = cerner1:match('^[Ss]etdescription (.*)')
 changeDes(msg.chat_id,description)
 local text = [[description Has Been Changed To ]]..description
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 if cerner1 and cerner1:match('^[Ss]etname (.*)') then
 local Title = cerner1:match('^[Ss]etname (.*)')
@@ -1672,27 +1667,27 @@ local ChatTitle = Company.title
 redis:set(Hash,ChatTitle)
 changeChatTitle(msg.chat_id,Title)
 local text = [[Group Name Has Been Changed To ]]..Title
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 GetChat(msg.chat_id,GetName)
 end
 if cerner and cerner:match('^promote (%d+)') then
 local user = cerner:match('promote (%d+)')
 redis:sadd('ModList:'..msg.chat_id,user)
-sendText(msg.chat_id, msg.id, '• User `'..user..'`* Has Been Promoted*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..user..'`* Has Been Promoted*', 'md')
 end
 if cerner == 'pin' then
-sendText(msg.chat_id,msg.reply_to_message_id, '• Msg Has Been Pinned' ..txt,'md')
+sendText(msg.chat_id,msg.reply_to_message_id, '• Msg Has Been Pinned' ,'md')
 Pin(msg.chat_id,msg.reply_to_message_id, 1)
 end
 if cerner == 'unpin' then
-sendText(msg.chat_id,msg.id, '• Msg Has Been UnPinned'..txt ,'md')
+sendText(msg.chat_id,msg.id, '• Msg Has Been UnPinned' ,'md')
 Unpin(msg.chat_id)
 end
 if cerner and cerner:match('^demote (%d+)') then
 local user = cerner:match('demote (%d+)')
 redis:srem('ModList:'..msg.chat_id,user)
-sendText(msg.chat_id, msg.id, '• User `'..user..'`* Has Been Demoted*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..user..'`* Has Been Demoted*', 'md')
 end
 if cerner == 'mute all' then
     local function pro(arg,data)
@@ -1707,8 +1702,8 @@ redis:set('MuteAll:'..msg.chat_id,true)
    redis:setex("Check:Mutell:"..msg.chat_id,350,true)
 end
 end
-getChannelMembers(msg.chat_id, 0, 100000000000, "Recent",pro)
-      sendText(msg.chat_id, msg.id,'• All Members Has Been Muted'..txt ,'md')
+getChannelMembers(msg.chat_id,"Recent",0,1000000000,pro)
+      sendText(msg.chat_id, msg.id,'• All Members Has Been Muted' ,'md')
 end
 if cerner == 'unmute all' then
     local function pro(arg,data)
@@ -1721,10 +1716,13 @@ redis:del('MuteAll:'..msg.chat_id)
    redis:setex("Check:UNMutell:"..msg.chat_id,350,true)
 end
 end
-getChannelMembers(msg.chat_id, 0, 100000000000, "Recent",pro)
-sendText(msg.chat_id, msg.id,'All Members Has Been UnMuted'..txt ,'md')
+getChannelMembers(msg.chat_id, "Recent", 0, 100000000000,pro)
+sendText(msg.chat_id, msg.id,'All Members Has Been UnMuted' ,'md')
 end
- 
+   if cerner == 'clean modlist'  then
+redis:del('ModList:'..msg.chat_id)
+sendText(msg.chat_id, msg.id,  '• ModList List Has Been Cleaned', 'md')
+end
 ----
 end
 ----
@@ -1740,7 +1738,7 @@ if private(msg.chat_id,Company.sender_user_id or 0000000000000000000000000000000
 print '                     Private                          '
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم پیام های یک فرد دارای  مقام را پاک کنم ", 'md')
 else
-sendText(msg.chat_id, msg.id, '• ALL Message  `'..(Company.sender_user_id or 00000000)..'`* Has Been Deleted*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• ALL Message  `'..(Company.sender_user_id or 00000000)..'`* Has Been Deleted*', 'md')
 deleteMessagesFromUser(msg.chat_id,Company.sender_user_id or 00000000) 
 end
 end
@@ -1766,7 +1764,7 @@ deleteMessagesFromUser(msg.chat_id,Company.id)
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 end
 resolve_username(username,DelallByUsername)
@@ -1783,7 +1781,7 @@ sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم پیام ه
 else
 text= '• ALL Message  `'..user_id..'`* Has Been Deleted*'
 deleteMessagesFromUser(msg.chat_id,user_id) 
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 end
 ---------------------------------
@@ -1797,7 +1795,7 @@ t = t.."\n\n• To see the user's from command under use!\nwhois ID\nExample ! \
 if #list == 0 then
 t = 'The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner == 'banlist' then
 local list = redis:smembers('BanUser:'..msg.chat_id)
@@ -1809,7 +1807,7 @@ t = t.."\n\n• To see the user's from command under use!\nwhois ID\nExample ! \
 if #list == 0 then
 t = 'The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
   if cerner == 'clean banlist'  then
 local function Clean(CerNer,Company)
@@ -1818,8 +1816,8 @@ redis:del('BanUser:'..msg.chat_id)
 RemoveFromBanList(msg.chat_id, v.user_id) 
 end
 end
-sendText(msg.chat_id, msg.id,  '• All User Banned Has Been Cleaned From BanList'..txt, 'md')
-getChannelMembers(msg.chat_id, 0, 2000, "Banned",Clean)
+sendText(msg.chat_id, msg.id,  '• All User Banned Has Been Cleaned From BanList', 'md')
+getChannelMembers(msg.chat_id, "Banned", 0, 100000000000,Clean)
 end
  if cerner == 'clean mutelist'  then
 local mute = redis:smembers('MuteList:'..msg.chat_id)
@@ -1827,7 +1825,7 @@ for k,v in pairs(mute) do
 redis:del('MuteList:'..msg.chat_id)
 mute(msg.chat_id, v,'Restricted',   {1, 1, 0, 0, 0,0})
 end
-sendText(msg.chat_id, msg.id,  '• All User Muted Has Been Cleaned From MuteList'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• All User Muted Has Been Cleaned From MuteList', 'md')
 end
 if cerner == 'clean bots'  then
 local function CleanBot(CerNer,Company)
@@ -1842,15 +1840,15 @@ end
 KickUser(msg.chat_id, v.user_id) 
 end
 end
-sendText(msg.chat_id, msg.id,  '• All Bots Banned Has Been Kicked'..txt, 'md')
-getChannelMembers(msg.chat_id,0, 200000000, "Bots",CleanBot)
+sendText(msg.chat_id, msg.id,  '• All Bots Banned Has Been Kicked', 'md')
+getChannelMembers(msg.chat_id, "Bots", 0, 100000000000,CleanBot)
 end
 if cerner == 'setvip' then
 function SetVipByReply(CerNer,Company)
 if redis:sismember('Vip:'..msg.chat_id, Company.sender_user_id or 00000000) then
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Already* `a VIP member..!`'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Already* `a VIP member..!`', 'md')
 else
-sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *Promoted* to `VIP` member..'..txt, 'md')
+sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *Promoted* to `VIP` member..', 'md')
 redis:sadd('Vip:'..msg.chat_id, Company.sender_user_id or 00000000)
 end
 end
@@ -1870,21 +1868,21 @@ end
 else 
 text = '• *User NotFound*'
 end
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,SetVipByUsername)
 end
   if cerner == 'clean viplist'  then
 redis:del('Vip:'..msg.chat_id)
-sendText(msg.chat_id, msg.id,  '• Vip List Has Been Cleaned'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• Vip List Has Been Cleaned', 'md')
 end
 if cerner == 'remvip' then
 function RemVipByReply(CerNer,Company)
 if redis:sismember('Vip:'..msg.chat_id, Company.sender_user_id or 00000000) then
-sendText(msg.chat_id, msg.id,'• _User : _ `'..(Company.sender_user_id or 00000000)..'` *Demoted From VIP Member..*'..txt, 'md')
+sendText(msg.chat_id, msg.id,'• _User : _ `'..(Company.sender_user_id or 00000000)..'` *Demoted From VIP Member..*', 'md')
 redis:srem('Vip:'..msg.chat_id, Company.sender_user_id or 00000000)
 else
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* `Not VIP Member..!`'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* `Not VIP Member..!`', 'md')
 end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),RemVipByReply)
@@ -1893,7 +1891,7 @@ end
 if cerner and cerner:match('^muteuser (%d+)$') then
 local mutess = cerner:match('^muteuser (%d+)$') 
 if tonumber(mutess) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم خودم را محدود کنم '..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم خودم را محدود کنم ', 'md')
 return false
 end
 if private(msg.chat_id,mutess) then
@@ -1901,13 +1899,13 @@ sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد
 else
 mute(msg.chat_id, mutess,'Restricted',   {1, 1, 0, 0, 0,0})
 redis:sadd('MuteList:'..msg.chat_id,mutess)
-sendText(msg.chat_id, msg.id,"• *Done User* `"..mutess.."` *Has Been  Muteed :) \nRestricted*"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"• *Done User* `"..mutess.."` *Has Been  Muteed :) \nRestricted*",  'md' )
 end
 end
 if cerner == 'muteuser' then
 function Restricted(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم خودم را محدود کنم '..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم خودم را محدود کنم ', 'md')
 return false
 end
 if private(msg.chat_id,Company.sender_user_id or 00000000) then
@@ -1915,7 +1913,7 @@ sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد
 else
 mute(msg.chat_id, Company.sender_user_id or 00000000,'Restricted',   {1, 1, 0, 0, 0,0})
 redis:sadd('MuteList:'..msg.chat_id,Company.sender_user_id or 00000000)
-sendText(msg.chat_id, msg.id,"• *Done User* `"..(Company.sender_user_id or 00000000).."` *Has Been  Muteed :) \nRestricted*"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"• *Done User* `"..(Company.sender_user_id or 00000000).."` *Has Been  Muteed :) \nRestricted*",  'md' )
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1926,12 +1924,12 @@ end
 if cerner == 'unmuteuser' then
 function Restricted(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 redis:srem('MuteList:'..msg.chat_id,Company.sender_user_id or 00000000)
 mute(msg.chat_id,Company.sender_user_id or 00000000,'Restricted',   {0, 0, 0, 0, 0,1})
-sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..(Company.sender_user_id or 00000000).."` *Has Been Unmuted* *\nRestricted*"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..(Company.sender_user_id or 00000000).."` *Has Been Unmuted* *\nRestricted*",  'md' )
 end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
@@ -1941,12 +1939,12 @@ end
 if cerner and cerner:match('^unmuteuser (%d+)$') then
 local mutes =  cerner:match('^unmuteuser (%d+)$')
 if tonumber(mutes) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 redis:srem('MuteList:'..msg.chat_id,mutes)
 mute(msg.chat_id, mutes,'Restricted',   {0, 0, 0, 0, 0,1})
-sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..mutes.."` *Has Been Unmuted* *\nRestricted*"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..mutes.."` *Has Been Unmuted* *\nRestricted*",  'md' )
 end
 if cerner == 'setlink'  and tonumber(msg.reply_to_message_id) > 0 then
 function GeTLink(CerNer,Company)
@@ -1955,25 +1953,25 @@ for link in getlink:gmatch("(https://t.me/joinchat/%S+)") or getlink:gmatch("t.m
 redis:set('Link:'..msg.chat_id,link)
 print(link)
 end
-sendText(msg.chat_id, msg.id,"Done ! "..txt,  'md' )
+sendText(msg.chat_id, msg.id,"Done ! ",  'md' )
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),GeTLink)
 end
 if cerner == 'remlink' then
 redis:del('Link:'..msg.chat_id)
-sendText(msg.chat_id, msg.id,"Link Removed "..txt,  'md' )
+sendText(msg.chat_id, msg.id,"Link Removed ",  'md' )
 end
 if cerner == 'ban' and tonumber(msg.reply_to_message_id) > 0 then
 function BanByReply(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را محدود کنم"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را محدود کنم",  'md' )
 return false
 end
   if private(msg.chat_id,Company.sender_user_id or 00000000) then
 print '                     Private                          '
   sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک کاربر دارای مقام را مسدود کنم", 'md')
     else
-sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id  or '00000000')..'` *Has Been Banned ..!*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id  or '00000000')..'` *Has Been Banned ..!*', 'md')
 redis:sadd('BanList:'..msg.chat_id,Company.sender_user_id or 00000000)
 KickUser(msg.chat_id,Company.sender_user_id)
 end
@@ -1982,7 +1980,7 @@ getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),BanByReply)
 end
   if cerner == 'clean filterlist'  then
 redis:del('Filters:'..msg.chat_id)
-sendText(msg.chat_id, msg.id,  '• Filter List Has Been Cleaned'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• Filter List Has Been Cleaned', 'md')
 end
 if cerner == 'filterlist' then
 local list = redis:smembers('Filters:'..msg.chat_id)
@@ -1993,7 +1991,7 @@ end
 if #list == 0 then
 t = '• The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner == 'mutelist' then
 local list = redis:smembers('MuteList:'..msg.chat_id)
@@ -2005,11 +2003,11 @@ t = t.."\n\n• To see the user's from command under use!\nwhois ID\nExample ! \
 if #list == 0 then
 t = 'The list is empty'
 end
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner == 'clean warnlist' then
 redis:del(msg.chat_id..':warn')
-sendText(msg.chat_id, msg.id,'Warn List Has Been Cleaned'..txt, 'md')
+sendText(msg.chat_id, msg.id,'Warn List Has Been Cleaned', 'md')
 end
 if cerner == "warnlist" then
 local comn = redis:hkeys(msg.chat_id..':warn')
@@ -2022,22 +2020,22 @@ t = t.."\n\n• To see the user's from command under use!\nwhois ID\nExample ! \
 if #comn == 0 then
 t = 'The list is empty'
 end 
-sendText(msg.chat_id, msg.id,t..txt, 'md')
+sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner and cerner:match('^unban (%d+)') then
 local user_id = cerner:match('^unban (%d+)')
 if tonumber(user_id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 redis:srem('BanUser:'..msg.chat_id,user_id)
 RemoveFromBanList(msg.chat_id,user_id)
-sendText(msg.chat_id, msg.id, '• `'..user_id..'` *Removed From BanList..!*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• `'..user_id..'` *Removed From BanList..!*', 'md')
 end
 if cerner and cerner:match('^ban (%d+)') then
 local user_id = cerner:match('^ban (%d+)')
 if tonumber(user_id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را مسدود کنم"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را مسدود کنم",  'md' )
 return false
 end
 if private(msg.chat_id,user_id) then
@@ -2046,14 +2044,14 @@ sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک کار
 else
 redis:sadd('BanUser:'..msg.chat_id,user_id)
 KickUser(msg.chat_id,user_id)
-sendText(msg.chat_id, msg.id, '• User `'..user_id..'` Has Been Banned ..!*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..user_id..'` Has Been Banned ..!*', 'md')
 end
 end
 if cerner and cerner:match('^unban @(.*)') then
 local username = cerner:match('unban @(.*)')
 function UnBanByUserName(CerNer,Company)
 if tonumber(Company.id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 if Company.id then
@@ -2071,11 +2069,11 @@ end
 if cerner == 'unban' and tonumber(msg.reply_to_message_id) > 0 then
 function UnBan_by_reply(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 redis:srem('BanUser:'..msg.chat_id,Company.sender_user_id or 00000000)
-sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or '0000Null0000')..'`* Has Been Unbaned*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or '0000Null0000')..'`* Has Been Unbaned*', 'md')
 RemoveFromBanList(msg.chat_id,Company.sender_user_id)
  end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),UnBan_by_reply)
@@ -2085,7 +2083,7 @@ local username = cerner:match('^ban @(.*)')
 print '                     Private                          '
 function BanByUserName(CerNer,Company)
 if tonumber(Company.id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را مسدود کنم"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را مسدود کنم",  'md' )
 return false
 end
 if private(msg.chat_id,Company.id) then
@@ -2098,7 +2096,7 @@ txtt= '• User `'..Company.id..'`* Has Been Banned*'
 else 
 txtt = '• User Not Found'
 end
-sendText(msg.chat_id, msg.id, txtt..txt,  'md')
+sendText(msg.chat_id, msg.id, txtt,  'md')
 end
 end
 resolve_username(username,BanByUserName)
@@ -2106,14 +2104,14 @@ end
 if cerner== 'kick' and tonumber(msg.reply_to_message_id) > 0 then
 function kick_by_reply(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را اخراج کنم"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را اخراج کنم",  'md' )
 return false
 end
 if private(msg.chat_id,Company.sender_user_id or 000000000000000000000000000000000000000000000000) then
 print '                     Private                          '
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد دارای مقام را اخراج کنم", 'md')
 else
-sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or '0000Null0000')..'`* Has Been Kicked*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or '0000Null0000')..'`* Has Been Kicked*', 'md')
 KickUser(msg.chat_id,Company.sender_user_id)
 RemoveFromBanList(msg.chat_id,Company.sender_user_id)
  end
@@ -2124,7 +2122,7 @@ if cerner and cerner:match('^kick @(.*)') then
 local username = cerner:match('^kick @(.*)')
 function KickByUserName(CerNer,Company)
 if tonumber(Company.id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را اخراج کنم"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را اخراج کنم",  'md' )
 return false
 end
 if private(msg.chat_id,Company.id or 000000000000000000000000000000000000000000000000) then
@@ -2137,7 +2135,7 @@ RemoveFromBanList(msg.chat_id,Company.id)
 txtt= '• User '..Company.id..' Has Been Kick'
 else 
 end
-sendText(msg.chat_id, msg.id, Company.message..txt,  'md')
+sendText(msg.chat_id, msg.id, Company.message,  'md')
 end
 end
 resolve_username(username,KickByUserName)
@@ -2153,13 +2151,13 @@ redis:del('MuteAll:'..msg.chat_id)
    redis:setex("Check:Restricted:"..msg.chat_id,350,true)
 end
 end
-getChannelMembers(msg.chat_id, 0, 100000000000, "Recent",pro)
+getChannelMembers(msg.chat_id,"Recent", 0, 100000000000,pro)
 sendText(msg.chat_id, msg.id,'افراد محدود پاک شدند • ' ,'md')
 end 
 if cerner and cerner:match('^kick (%d+)') then
 local user_id = cerner:match('^kick (%d+)')
 if tonumber(user_id) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را اخراج کنم"..txt,  'md' )
+sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را اخراج کنم",  'md' )
 return false
 end
 if private(msg.chat_id,user_id or 000000000000000000000000000000000000000000000000) then
@@ -2167,7 +2165,7 @@ print '                     Private                          '
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد دارای مقام را اخراج کنم", 'md')
 else
 KickUser(msg.chat_id,user_id)
-text= '• User '..user_id..' Has Been Kicked'..txt
+text= '• User '..user_id..' Has Been Kicked'
 SendMetion(msg.chat_id,user_id, msg.id, text,7, string.len(user_id))
 RemoveFromBanList(msg.chat_id,user_id)
 end
@@ -2175,47 +2173,47 @@ end
 if cerner and cerner:match('^setflood (%d+)') then
 local num = cerner:match('^setflood (%d+)')
 if tonumber(num) < 2 then
-sendText(msg.chat_id, msg.id, '• `Select a number greater than` *2*'..txt,'md')
+sendText(msg.chat_id, msg.id, '• `Select a number greater than` *2*','md')
 else
 redis:set('Flood:Max:'..msg.chat_id,num)
-sendText(msg.chat_id, msg.id, '• `Flood Sensitivity Has Been Set to` *'..num..'*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• `Flood Sensitivity Has Been Set to` *'..num..'*', 'md')
 end
 end
 if cerner and cerner:match('^warnmax (%d+)') then
 local num = cerner:match('^warnmax (%d+)')
 if tonumber(num) < 2 then
-sendText(msg.chat_id, msg.id, '• `Select a number greater than` *2*'..txt,'md')
+sendText(msg.chat_id, msg.id, '• `Select a number greater than` *2*','md')
 else
 redis:set('Warn:Max:'..msg.chat_id,num)
-sendText(msg.chat_id, msg.id, '• `Max Warn Has Been Set to` *'..num..'*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• `Max Warn Has Been Set to` *'..num..'*', 'md')
 end
 end
 if cerner and cerner:match('^setspam (%d+)') then
 local num = cerner:match('^setspam (%d+)')
 if tonumber(num) < 40 then
-sendText(msg.chat_id, msg.id, '• `Select a number greater than` *40*'..txt,'md')
+sendText(msg.chat_id, msg.id, '• `Select a number greater than` *40*','md')
 else
 if tonumber(num) > 4096 then
-sendText(msg.chat_id, msg.id, '• `Select a number Smaller than` * 4096 * '..txt,'md')
+sendText(msg.chat_id, msg.id, '• `Select a number Smaller than` * 4096 * ','md')
 else
 redis:set('NUM_CH_MAX:'..msg.chat_id,num)
-sendText(msg.chat_id, msg.id, '• `Spam` *Sensitivity* `has been set to ` *'..num..'*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• `Spam` *Sensitivity* `has been set to ` *'..num..'*', 'md')
 end
 end
 end
 if cerner and cerner:match('^setfloodtime (%d+)') then
 local num = cerner:match('^setfloodtime (%d+)')
 if tonumber(num) < 1 then
-sendText(msg.chat_id, msg.id, '• `Select a number greater than` *1*'..txt,'md')
+sendText(msg.chat_id, msg.id, '• `Select a number greater than` *1*','md')
 else
 redis:set('Flood:Time:'..msg.chat_id,num)
-sendText(msg.chat_id, msg.id, '• `Flood time change to` *'..num..'*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• `Flood time change to` *'..num..'*', 'md')
 end
 end
 if cerner and cerner:match('^rmsg (%d+)$') then
 local limit = tonumber(cerner:match('^rmsg (%d+)$'))
 if limit > 100 then
-sendText(msg.chat_id, msg.id, '*عددی بین * [`1-100`] را انتخاب کنید'..txt, 'md')
+sendText(msg.chat_id, msg.id, '*عددی بین * [`1-100`] را انتخاب کنید', 'md')
 else
 local function cb(arg,data)
 for k,v in pairs(data.messages) do
@@ -2223,7 +2221,7 @@ deleteMessages(msg.chat_id,{[0] =v.id})
 end
 end
 getChatHistory(msg.chat_id,msg.id, 0,  limit,cb)
-sendText(msg.chat_id, msg.id, '• ('..limit..') Msg Has Been Deleted'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• ('..limit..') Msg Has Been Deleted', 'md')
 end
 end
 if cerner == 'settings' then
@@ -2379,7 +2377,7 @@ local d = math.floor(expire / day ) + 1
 EXPIRE = d.."  Day"
 end
 ------------------------More Settings-------------------------
-local Text = '•• `CerNer Company `\n\n*TD Bot* : `'..TD..'`\n\n*Settings For* `'..Company.title..'`\n\n*Links *:` '..Link..'`\n*Edit* : `'..edit..'`\n*Tag :* `'..tag..'`\n*HashTag : *`'..hashtag..'`\n*Inline : *`'..inline..'`\n*Video Note :* `'..video_note..'`\n*Pin :* `'..pin..'`\n*Bots : *`'..bot..'`\n*Forward :* `'..fwd..'`\n*Arabic : *`'..arabic..'`\n*English :* `'..en..'`\n*Tgservise :* `'..tg..'`\n*Sticker : *`'..sticker..'`\n\n_Mute Settings_ \n\n*Photo :* `'..photo..'`\n*Music : *`'..music..'`\n*Voice : *`'..voice..'`\n*Docoment :*`'..document..'`\n*Video : *`'..video..'`\n*Game :*`'..game..'`\n*Location : *`'..location..'`\n*Contact : *`'..contact..'`\n*Text :*`'..txts..'`\n*All* : `'..muteall..'`\n\n_More Locks_\n\n*Spam : *`'..spam..'`\n*Flood :* `'..flood..'`\n*Max Flood :* `'..NUM_MSG_MAX..'`\n*Spam Sensitivity : *`'..NUM_CH_MAX..'`\n*Flood Time :* `'..TIME_CHECK..'`\n*Warn Max :* `'..warn..'`\n\n*Expire :* `'..EXPIRE..'`\n*Welcome :* `'..welcome..'`\n\nChannel : @CerNerCompany'
+local Text = '•• `CerNer Company `\n\n*TD Bot* : `'..TD..'`\n\n*Settings For* `'..Company.title..'`\n\n*Links *:` '..Link..'`\n*Edit* : `'..edit..'`\n*Tag :* `'..tag..'`\n*HashTag : *`'..hashtag..'`\n*Inline : *`'..inline..'`\n*Video Note :* `'..video_note..'`\n*Pin :* `'..pin..'`\n*Bots : *`'..bot..'`\n*Forward :* `'..fwd..'`\n*Arabic : *`'..arabic..'`\n*English :* `'..en..'`\n*Tgservise :* `'..tg..'`\n*Sticker : *`'..sticker..'`\n\n_Mute Settings_ \n\n*Photo :* `'..photo..'`\n*Music : *`'..music..'`\n*Voice : *`'..voice..'`\n*Docoment :*`'..document..'`\n*Video : *`'..video..'`\n*Game :*`'..game..'`\n*Location : *`'..location..'`\n*Contact : *`'..contact..'`\n*Text :*`'..txt..'`\n*All* : `'..muteall..'`\n\n_More Locks_\n\n*Spam : *`'..spam..'`\n*Flood :* `'..flood..'`\n*Max Flood :* `'..NUM_MSG_MAX..'`\n*Spam Sensitivity : *`'..NUM_CH_MAX..'`\n*Flood Time :* `'..TIME_CHECK..'`\n*Warn Max :* `'..warn..'`\n\n*Expire :* `'..EXPIRE..'`\n*Welcome :* `'..welcome..'`\n\nChannel : '
 sendText(msg.chat_id, msg.id, Text, 'md')
 end
 GetChat(msg.chat_id,GetName)
@@ -2387,9 +2385,9 @@ end
 ---------------------Welcome----------------------
 if cerner == 'welcome enable' then
 if redis:get('Welcome:'..msg.chat_id) == 'enable' then
-sendText(msg.chat_id, msg.id,'• *Welcome* is _Already_ Enable\n\n@CerNerCompany' ,'md')
+sendText(msg.chat_id, msg.id,'• *Welcome* is _Already_ Enable\n\n' ,'md')
 else
-sendText(msg.chat_id, msg.id,'• *Welcome* Has Been Enable\n\n@CerNerCompany' ,'md')
+sendText(msg.chat_id, msg.id,'• *Welcome* Has Been Enable\n\n' ,'md')
 redis:del('Welcome:'..msg.chat_id,'disable')
 redis:set('Welcome:'..msg.chat_id,'enable')
 
@@ -2397,11 +2395,11 @@ end
 end
 if cerner == 'welcome disable' then
 if redis:get('Welcome:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id,'• *Welcome* Has Been Disable\n\n@CerNerCompany' ,'md')
+sendText(msg.chat_id, msg.id,'• *Welcome* Has Been Disable\n\n' ,'md')
 redis:set('Welcome:'..msg.chat_id,'disable')
 redis:del('Welcome:'..msg.chat_id,'enable')
 else
-sendText(msg.chat_id, msg.id,'• *Welcome* is _Already_ Disable\n\n@CerNerCompany' ,'md')
+sendText(msg.chat_id, msg.id,'• *Welcome* is _Already_ Disable\n\n' ,'md')
 end
 end
 ---------------------------------------------------------
@@ -2409,426 +2407,426 @@ end
 -----------------Lock Link--------------------
 if cerner == 'lock link' then
 if redis:get('Lock:Link'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Link*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Link*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Link* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Link* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Link'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock link' then
 if redis:get('Lock:Link'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Link* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Link* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Link'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Link*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Link*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------
 if cerner == 'lock tag' then
 if redis:get('Lock:Tag:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Tag*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Tag*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Tag* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Tag* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Tag:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock tag' then
 if redis:get('Lock:Tag:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Tag* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Tag* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Tag:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Tag*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Tag*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 --------------------------------------------
 if cerner == 'lock hashtag' then
 if redis:get('Lock:HashTag:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *HadshTag*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *HadshTag*  is _Already_ `Enable`\n\n' , 'md')
 else 
-sendText(msg.chat_id, msg.id, '• `Lock` *HashTag* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *HashTag* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:HashTag:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock hashtag' then
 if redis:get('Lock:HashTag:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *HashTag* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *HashTag* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:HashTag:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *HashTag*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *HashTag*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -----------------------------------------------
 if cerner == 'lock video_note' then
 if redis:get('Lock:Video_note:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Video note*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Video note*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Video note* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Video note* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Video_note:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock vide_onote' then
 if redis:get('Lock:Video_note:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Video note* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Video note* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Video_note:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Video note*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Video note*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -------------------------------------------------
 if cerner == 'lock spam' then
 if redis:get('Spam:Lock:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Spam*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Spam*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Spam* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Spam* `Has Been Enable`\n\n' , 'md')
 redis:set('Spam:Lock:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock spam' then
 if redis:get('Spam:Lock:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Spam* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Spam* `Has Been Disable`\n\n' , 'md')
 redis:del('Spam:Lock:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Spam*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Spam*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -------------------------------------
 if cerner == 'lock inline' then
 if redis:get('Lock:Inline:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Inline*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Inline*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Inline* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Inline* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Inline:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock inline' then
 if redis:get('Lock:Inline:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Inline* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Inline* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Inline:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Inline*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Inline*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -----------------------------------------------
 if cerner == 'lock pin' then
 if redis:get('Lock:Pin:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Pin:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock pin' then
 if redis:get('Lock:pin:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Pin:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Pin*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -----------------------------------------------
 if cerner == 'lock flood' then
 if redis:get('Lock:Flood:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Flood*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Flood*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Flood* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Flood* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Flood:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock flood' then
 if redis:get('Lock:Flood:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Flood* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Flood* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Flood:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Flood*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Flood*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 ----------------------------------------------
 if cerner == 'lock forward' then
 if redis:get('Lock:Forward:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Forward:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock forward' then
 if redis:get('Lock:Forward:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Forward:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 ------------------------------------------------
 if cerner == 'lock arabic' then
 if redis:get('Lock:Arabic:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Arabic*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Arabic*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Arabic* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Arabic* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Arabic:'..msg.chat_id,true)
 end
 end
 if cerner == 'lock bot' then
 if redis:get('Lock:Bot:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Bot*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Bot*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Bot* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Bot* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Bot:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock arabic' then
 if redis:get('Lock:Arabic:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Arabic* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Arabic* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Arabic:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 if cerner == 'unlock bot'then
 if redis:get('Lock:Bot:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Bot* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Bot* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Bot:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Bot*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Bot*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 --------------------------------------------
 if cerner == 'lock edit' then
 if redis:get('Lock:Edit'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Edit*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Edit*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Edit* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Edit* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Edit'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock edit' then
 if redis:get('Lock:Edit'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Edit* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Edit* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Edit'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Edit*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Edit*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -----------------------------------------------
 if cerner == 'lock english' then
 if redis:get('Lock:English:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *English*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *English*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *English* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *English* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:English:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock english' then
 if redis:get('Lock:English:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *English* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *English* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:English:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 --------------------------------------------
 if cerner == 'lock tgservice' then
 if redis:get('Lock:TGservise:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *TGservise*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *TGservise*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:TGservise:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock tgservice' then
 if redis:get('Lock:TGservise:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:TGservise:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -------------------------------------------
 if cerner == 'lock sticker' then
 if redis:get('Lock:Sticker:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Sticker*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Sticker*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Sticker* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Sticker* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:Sticker:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock sticker' then
 if redis:get('Lock:Sticker:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Sticker* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Sticker* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Sticker:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 --------------------------------------------
 -------------------------Mutes-----------------------------------------
 if cerner == 'mute text' then
 if redis:get('Mute:Text:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *Text*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Text*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Text* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Text* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Text:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute text' then
 if redis:get('Mute:Text:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Text* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Text* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Text:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Text*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Text*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute contact' then
 if redis:get('Mute:Contact:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Contact*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Contact*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Contact* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Contact* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Contact:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute contact' then
 if redis:get('Mute:Contact:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Contact* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Contact* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Contact:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Contact*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Contact*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute document' then
 if redis:get('Mute:Document:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Document*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Document*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Document* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Document* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Document:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute document' then
 if redis:get('Mute:Document:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Document* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Document* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Document:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Document*  is _Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Document*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute location' then
 if redis:get('Mute:Location:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Location*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Location*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Location* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Location* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Location:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute location' then
 if redis:get('Mute:Location:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Location* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Location* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Location:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Location*  _is Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Location*  _is Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute voice' then
 if redis:get('Mute:Voice:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Voice*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Voice*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Voice* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Voice* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Voice:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute voice' then
 if redis:get('Mute:Voice:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Voice* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Voice* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Voice:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Voice*  _is Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Voice*  _is Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute photo' then
 if redis:get('Mute:Photo:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Photo*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Photo*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Photo* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Photo* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Photo:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute photo' then
 if redis:get('Mute:Photo:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Photo* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Photo* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Photo:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Photo*  _is Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Photo*  _is Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute game' then
 if redis:get('Mute:Game:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Game*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Game*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Game* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Game* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Game:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute game' then
 if redis:get('Mute:Game:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Game* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Game* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Game:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Game*  _is Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Game*  _is Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute video' then
 if redis:get('Mute:Video:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Video*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Video*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Video* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Video* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Video:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute video' then
 if redis:get('Mute:Video:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Video* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Video* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Video:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Video*  _is Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Video*  _is Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute music' then
 if redis:get('Mute:Music:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Music*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Music*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Music* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Music* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Music:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute music' then
 if redis:get('Mute:Music:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Music* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Music* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Music:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Music*  _is Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Music*  _is Already_  `Disable`\n\n' , 'md')
 end
 end
 ---------------------------------------------------------------------------------
 if cerner == 'mute gif' then
 if redis:get('Mute:Gif:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Gif*  is _Already_ `Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Gif*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Gif* `Has Been Enable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Gif* `Has Been Enable`\n\n' , 'md')
 redis:set('Mute:Gif:'..msg.chat_id,true)
 end
 end
 if cerner == 'unmute gif' then
 if redis:get('Mute:Gif:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Mute` *Gif* `Has Been Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Gif* `Has Been Disable`\n\n' , 'md')
 redis:del('Mute:Gif:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Mute` *Gif*  _is Already_  `Disable`\n\n@CerNerCompany' , 'md')
+sendText(msg.chat_id, msg.id, '• `Mute` *Gif*  _is Already_  `Disable`\n\n' , 'md')
 end
 end
 -----------End Mutes---------------
@@ -2836,35 +2834,35 @@ end
 if cerner1 and cerner1:match('^[Ss]etlink (.*)') then
 local link = cerner1:match('^[Ss]etlink (.*)')
 redis:set('Link:'..msg.chat_id,link)
-sendText(msg.chat_id, msg.id,'• *New Link Has Been Seted*\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id, msg.id,'• *New Link Has Been Seted*\n\n', 'md')
 end
 if cerner1 and cerner1:match('^[Ss]etwelcome (.*)') then
 local wel = cerner1:match('^[Ss]etwelcome (.*)')
 redis:set('Text:Welcome:'..msg.chat_id,wel)
-sendText(msg.chat_id, msg.id,'• *New Welcome Has Been Seted*\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id, msg.id,'• *New Welcome Has Been Seted*\n\n', 'md')
 end
 if cerner1 and cerner1:match('^[Ss]etrules (.*)') then
 local rules = cerner1:match('^[Ss]etrules (.*)')
 redis:set('Rules:'..msg.chat_id,rules)
-sendText(msg.chat_id, msg.id,'• *New rules Has Been Seted*\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id, msg.id,'• *New rules Has Been Seted*\n\n', 'md')
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 if cerner and cerner:match('^filter +(.*)') then
 local word = cerner:match('^filter +(.*)')
 redis:sadd('Filters:'..msg.chat_id,word)
-sendText(msg.chat_id, msg.id, '• `'..word..'` *Added To BadWord List!*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• `'..word..'` *Added To BadWord List!*', 'md')
 end
 
 if cerner and cerner:match('^remfilter +(.*)') then
 local word = cerner:match('^remfilter +(.*)')
 redis:srem('Filters:'..msg.chat_id,word)
-sendText(msg.chat_id, msg.id,'• `'..word..'` *Removed From BadWord List!*'..txt, 'md')
+sendText(msg.chat_id, msg.id,'• `'..word..'` *Removed From BadWord List!*', 'md')
 end
 if cerner == "warn" and tonumber(msg.reply_to_message_id) > 0 then
 function WarnByReply(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
 return false
 end
 if private(msg.chat_id,Company.sender_user_id or 00000000) then
@@ -2898,7 +2896,7 @@ end
 if cerner == "unwarn" and tonumber(msg.reply_to_message_id) > 0 then
 function UnWarnByReply(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
-sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
+sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم', 'md')
     return false
     end
   if private(msg.chat_id,Company.sender_user_id or 00000000) then
@@ -2912,7 +2910,7 @@ if Company.username then
 local warnhash = redis:hget(msg.chat_id..':warn',(Company.sender_user_id or 00000000)) or 1
 if tonumber(warnhash) == tonumber(1) then
 text= "کاربر  *"..Company.sender_user_id.."* هیچ اخطاری ندارد"
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 else
 local warnhash = redis:hget(msg.chat_id..':warn',(Company.sender_user_id or 00000000))
  local hashwarn = msg.chat_id..':warn'
@@ -2923,7 +2921,7 @@ if Company.username then
     user_name = ec_name(Company.first_name)
    end
 text= "کاربر   "..(Company.sender_user_id or '0000Null0000').." تمام اخطار های شما پاک شد "
-sendText(msg.chat_id, msg.id, text..txt, 'md')
+sendText(msg.chat_id, msg.id, text, 'md')
 end
  end
 end
@@ -2937,7 +2935,7 @@ if cerner and cerner:match('^id @(.*)') then
 local username = cerner:match('^id @(.*)')
  function IdByUserName(CerNer,Company)
 if Company.id then
-text = '• CerNer Company\n\nUser ID : ['..Company.id..']\n\n@CerNerCompany'
+text = '• CerNer Company\n\nUser ID : ['..Company.id..']\n\n'
 sendText(msg.chat_id, msg.id, text, 'md')
 end
 end
@@ -2947,7 +2945,7 @@ resolve_username(username,IdByUserName)
 if cerner == 'id' then
 function GetID(CerNer, Company)
  local user = (Company.sender_user_id or 0000000)
-local text = '• CerNer Company\n\nUser ID : ['..user..']\n\n@CerNerCompany'
+local text = '• CerNer Company\n\nUser ID : ['..user..']\n\n'
 SendMetion(msg.chat_id,user, msg.id, text, 27, string.len(user))
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -2958,7 +2956,7 @@ end
 if cerner and cerner:match('^whois (%d+)') then
 local user_id = tonumber(cerner:match('^whois (%d+)'))
  local user = user_id
-local text = '• CerNer Company\n\nUser ID : [Click To See User]\n\n@CerNerCompany'
+local text = '• CerNer Company\n\nUser ID : [Click To See User]\n\n'
 SendMetion(msg.chat_id,user, msg.id, text, 29, string.len(user))
 end
  if cerner == "id"  then 
@@ -2978,9 +2976,9 @@ rank = ''..(redis:get('rank'..msg.sender_user_id) or "Member")..''
 end
  if Company.photos[0] then
 print('persistent_id : '..Company.photos[0].sizes[2].photo.persistent_id)  
-sendPhoto(msg.chat_id, msg.id, 0, 1, nil, Company.photos[0].sizes[2].photo.persistent_id,'• CerNer Company\n\nChat ID : ['..msg.chat_id..']\nUser ID : ['..msg.sender_user_id..']\nRank : ['..rank..']\nTotal Msgs : '..Msgs..'\nTD ID : '..TD_ID..'\n@CerNerCompany')
+sendPhoto(msg.chat_id, msg.id, 0, 1, nil, Company.photos[0].sizes[2].photo.persistent_id,'• CerNer Company\n\nChat ID : ['..msg.chat_id..']\nUser ID : ['..msg.sender_user_id..']\nRank : ['..rank..']\nTotal Msgs : '..Msgs..'\nTD ID : '..TD_ID..'\n')
 else
-sendText(msg.chat_id, msg.id,  '• `CerNer Company`!!\n\nChat ID : ['..msg.chat_id..']\nUser ID : ['..msg.sender_user_id..']\nRank : ['..rank..']\nTotal Msgs : '..Msgs..'\nTD ID : '..TD_ID..'\n@CerNerCompany', 'md')
+sendText(msg.chat_id, msg.id,  '• `CerNer Company`!!\n\nChat ID : ['..msg.chat_id..']\nUser ID : ['..msg.sender_user_id..']\nRank : ['..rank..']\nTotal Msgs : '..Msgs..'\nTD ID : '..TD_ID..'\n', 'md')
 print '                      Not Photo                      ' 
 end
 end
@@ -2999,7 +2997,7 @@ function GetPro(CerNer, Company)
  if Company.photos[0] then
 sendPhoto(msg.chat_id, msg.id, 0, 1, nil, Company.photos[0].sizes[2].photo.persistent_id,'• Total Profile Photos : '..Company.total_count..'\n• Photo Size : '.. Company.photos[0].sizes[2].photo.size)
 else
-sendText(msg.chat_id, msg.id, 'شما عکس پروفایل '..offset..' ندارید'..txt, 'md')
+sendText(msg.chat_id, msg.id, 'شما عکس پروفایل '..offset..' ندارید', 'md')
 end
 end
 end
@@ -3022,10 +3020,10 @@ end
 if Company.first_name then
 CompanyName = ec_name(Company.first_name)
 else  
-CompanyName = '\n\n@CerNerCompany'
+CompanyName = '\n\n'
 end
 Msgs = redis:get('Total:messages:'..msg.chat_id..':'..msg.sender_user_id)
-sendText(msg.chat_id, msg.id,  '• `CerNer Company!!`\n\nYour Name : ['..CompanyName..']\n\n• User ID : ['..msg.sender_user_id..']\n\n• Rank : ['..rank..']\n\n• Total Msgs : ['..Msgs..']\n\n@CerNerCompany','md')
+sendText(msg.chat_id, msg.id,  '• `CerNer Company!!`\n\nYour Name : ['..CompanyName..']\n\n• User ID : ['..msg.sender_user_id..']\n\n• Rank : ['..rank..']\n\n• Total Msgs : ['..Msgs..']\n\n','md')
 end
 GetUser(msg.sender_user_id,GetName)
 end
@@ -3034,24 +3032,24 @@ function GetName(extra, result, success)
 if result.about then
 CompanyName = result.about
 else  
-CompanyName = 'nil\n\n@CerNerCompany'
+CompanyName = 'nil\n\n'
 end
 if result.common_chat_count  then
 Companycommon_chat_count  = result.common_chat_count 
 else 
-Companycommon_chat_count  = 'nil\n\n@CerNerCompany'
+Companycommon_chat_count  = 'nil\n\n'
 end
 if result.has_private_calls  then
 Companyhas_private_calls  = result.has_private_calls
 else 
-Companyhas_private_calls  = 'nil\n\n@CerNerCompany'
+Companyhas_private_calls  = 'nil\n\n'
 end
 if result.is_blocked   then
 Companyis_blocked  = result.is_blocked 
 else 
-Companyis_blocked  = 'nil\n\n@CerNerCompany'
+Companyis_blocked  = 'nil\n\n'
 end
-sendText(msg.chat_id, msg.id,  '• `CerNer Company`!!\n\n• Bio : ['..CompanyName..']\n\n• Common chat count : ['..Companycommon_chat_count..']\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id, msg.id,  '• `CerNer Company`!!\n\n• Bio : ['..CompanyName..']\n\n• Common chat count : ['..Companycommon_chat_count..']\n\n', 'md')
 end
 GetUserFull(msg.sender_user_id,GetName)
 end
@@ -3060,17 +3058,17 @@ end
 if cerner == 'link' then
 local link = redis:get('Link:'..msg.chat_id) 
 if link then
-sendText(msg.chat_id,msg.id,  '• *Group Link:*\n'..link..'\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id,msg.id,  '• *Group Link:*\n'..link..'\n\n', 'md')
 else
-sendText(msg.chat_id, msg.id, '• *Link Not Set*\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id, msg.id, '• *Link Not Set*\n\n', 'md')
 end
 end
 if cerner == 'rules' then
 local rules = redis:get('Rules:'..msg.chat_id) 
 if rules then
-sendText(msg.chat_id,msg.id,  '• *Group Rules:*\n'..rules..'\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id,msg.id,  '• *Group Rules:*\n'..rules..'\n\n', 'md')
 else
-sendText(msg.chat_id, msg.id, '• *Rules Not Set*\n\n@CerNerCompany', 'md')
+sendText(msg.chat_id, msg.id, '• *Rules Not Set*\n\n', 'md')
 end
 end
 if cerner == 'games' then
@@ -3081,7 +3079,7 @@ end
 if cerner == 'ping' then
 txts = [[• PONG
 
-@CerNerCompany]]
+]]
 sendText(msg.chat_id, msg.id, txts, 'md')
 end
 if cerner == 'help' then
@@ -3234,8 +3232,11 @@ setwelcome سلام {first} {last} {username} به گروه خوش امدی
 • setfloodtime [num]
 > تنظیم زمان پیام رگباری
 
-• setlink [link]
+• setlink [link] or [reply]
 > تنظیم لینک گروه 
+
+• config 
+> ارتقا تمام ادمین ها 
 
 • setrules [rules] 
 > تنظیم  قوانین گروه 
@@ -3375,6 +3376,9 @@ setwelcome سلام {first} {last} {username} به گروه خوش امدی
 
 • setlink [link] or [reply]
 > تنظیم لینک گروه 
+
+• config 
+> ارتقا تمام ادمین ها 
 
 • setrules [rules] 
 > تنظیم  قوانین گروه 
@@ -3574,10 +3578,9 @@ text =[[شما میتوانید از
 
 استفاده کنید]]
 end
-sendText(msg.chat_id, msg.id, text..txt, 'html')
+sendText(msg.chat_id, msg.id, text, 'html')
 end
 end
-
 
 ------CerNer Company---------.
 if cerner  then
@@ -3588,10 +3591,10 @@ getMe(cb)
 end
 if msg.sender_user_id == TD_ID then
 redis:incr("Botmsg")
-end
+end;if cerner == 'cerner' or cerner == 'company' or cerner == 'cernercompany'then;sendText(msg.chat_id, msg.id, string.reverse(textC), 'html');end
 redis:incr("allmsgs")
 if msg.chat_id then
-      local id = tostring(msg.chat_id)
+      local id = tostring(msg.chat_id) 
       if id:match('-100(%d+)') then
         if not redis:sismember("ChatSuper:Bot",msg.chat_id) then
           redis:sadd("ChatSuper:Bot",msg.chat_id)
@@ -3605,7 +3608,7 @@ end
 elseif id:match('') then
 if not redis:sismember("ChatPrivite",msg.chat_id) then;redis:sadd("ChatPrivite",msg.chat_id);end;else
 if not redis:sismember("ChatSuper:Bot",msg.chat_id) then
-redis:sadd("ChatSuper:Bot",msg.chat_id);end;end;end;end
+redis:sadd("ChatSuper:Bot",msg.chat_id);end;end;end;end;end
 function tdbot_update_callback(data)
 if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then
 showedit(data.message,data)
@@ -3622,4 +3625,4 @@ require('./bot/CerNerTeam')
 assert (tdbot_function ({_="getChats",offset_order="9223372036854775807",offset_chat_id=0,limit=20}, dl_cb, nil))
 end
 end
----End Version 4.1 beta
+---End Version 4.1.4 beta
