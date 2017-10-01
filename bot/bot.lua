@@ -1205,7 +1205,7 @@ end
 GetChat(msg.chat_id,GetName)
 end
 if cerner == 'ids' then 
-sendText(msg.chat_id,msg.id,''..msg.chat_id..'','md)
+sendText(msg.chat_id,msg.id,'`'..msg.chat_id..'`','md')
 end
 			
 if cerner == 'reload' then
