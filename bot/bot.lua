@@ -6,6 +6,8 @@ https = require "ssl.https"
 CerNerCompany = '`اختصاصی  کمپانی کرنر `'
 SUDO_ID = {363936960}
 Full_Sudo = {363936960}
+ChannelLogs= -1001112806544
+MsgTime = os.time() - 60
 Plan1 = 2592000
 Plan2 = 7776000
 function is_sudo(msg)
@@ -14,8 +16,12 @@ function is_sudo(msg)
     if user == msg.sender_user_id then
       var = true
     end
-  end
   if redis:sismember("SUDO-ID", msg.sender_user_id) then
+    var = true
+  end
+  return var
+end
+  if user == tonumber(Full_Sudo) then
     var = true
   end
   return var
@@ -366,6 +372,14 @@ local function getInputFile(file, conversion_str, expectedsize)
 
   return infile
 end
+function addChatMembers(chatid, userids, callback, data)
+  assert (tdbot_function ({
+    _ = 'addChatMembers',
+    chat_id = chatid,
+    user_ids = userids,
+  },  dl_cb, nil))
+end
+
 function GetChannelFull(channelid)
 assert (tdbot_function ({
  _ = 'getChannelFull',
@@ -510,19 +524,15 @@ function SendMetion(chat_id, user_id, msg_id, text, offset, length)
     }
   }, dl_cb, nil))
 end
-local function vardump(value)
-print '\n-------------------------------------------------------------- START'
-print(serpent.block(value, {comment=false}))
-print '--------------------------------------------------------------- STOP\n'
-end
 function dl_cb(arg, data)
--- print '\n===================================================================='
-vardump(arg)
-vardump(data)
-  -- print '--==================================================================\n'
 end
  function showedit(msg,data)
+
 if msg then
+if msg.date < tonumber(MsgTime) then
+print('OLD MESSAGE')
+ return false
+end
 function is_supergroup(msg)
   chat_id = tostring(msg.chat_id)
   if chat_id:match('^-100') then 
@@ -540,10 +550,6 @@ print '      Pinned By Owner       '
  redis:set('Pin_id'..msg.chat_id, msg.content.message_id)
  end
  end
-if msg.date < os.time() - 10 then
-print("\027[ m>>> OLD MSG <<<\027[00m")
-return false
-end
 NUM_MSG_MAX = 6
 if redis:get('Flood:Max:'..msg.chat_id) then
 NUM_MSG_MAX = redis:get('Flood:Max:'..msg.chat_id)
@@ -596,13 +602,17 @@ end
          print("[ CerNerCompany ]\nThis is [ TEXT ]")
       MsgType = 'text'
     end
+
  if msg.content._ == "messageChatAddMembers" then
          print("[ CerNerCompany ]\nThis is [ AddUser ]")
 for i=0,#msg.content.member_user_ids do
 msg.add = msg.content.member_user_ids[i]
-print(serpent.block(data))
        MsgType = 'AddUser'
     end
+end
+if msg.add == TD_ID then
+redis:set('CheckExpire:'..msg.chat_id,true)
+sendText(msg.chat_id, msg.id,'*GP added*'..txt,'md')
 end
     if msg.content._ == "messageChatJoinByLink" then
          print("[ CerNerCompany ]\nThis is [JoinByLink ]")
@@ -746,18 +756,19 @@ if msg.send_state._ == "messageIsSuccessfullySent" then
 return false 
 end   
 if is_supergroup(msg) then
-if cerner and not is_sudo(msg) then
+
+if not is_sudo(msg) then
 if not redis:sismember('CompanyAll',msg.chat_id) then
 redis:sadd('CompanyAll',msg.chat_id)
-  redis:set("ExpireData:"..msg.chat_id,'waiting')
-        else
-          if redis:get("ExpireData:"..msg.chat_id) then
-            if redis:ttl("ExpireData:"..msg.chat_id) and tonumber(redis:ttl("ExpireData:"..msg.chat_id)) < 432000 and not redis:get('CheckExpire:'..msg.chat_id) then
-      sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است "..txt,'md')
-        redis:set('CheckExpire:'..msg.chat_id,true)
-      end
-        elseif not redis:get("ExpireData:"..msg.chat_id) then
-      sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است "..txt,'md')
+redis:set("ExpireData:"..msg.chat_id,'waiting')
+else
+if redis:get("ExpireData:"..msg.chat_id) then
+if redis:ttl("ExpireData:"..msg.chat_id) and tonumber(redis:ttl("ExpireData:"..msg.chat_id)) < 432000 and not redis:get('CheckExpire:'..msg.chat_id) then
+sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است "..txt,'md')
+redis:set('CheckExpire:'..msg.chat_id,true)
+end
+elseif not redis:get("ExpireData:"..msg.chat_id) then
+sendText(msg.chat_id,0,"شارژ  "..msg.chat_id.." به اتمام رسیده است "..txt,'md')
 redis:srem("group:",msg.chat_id)
 redis:del("OwnerList:",msg.chat_id)
 redis:del("ModList:",msg.chat_id)
@@ -807,7 +818,7 @@ end
 ---------------------------
 if redis:get('Lock:Tag:'..chat) then
 if cerner then
-local tag = cerner:match("@(.*)")
+local tag = cerner:match("@(.*)") or cerner:match("#(.*)")
 if tag then
 deleteMessages(msg.chat_id, {[0] = msg.id})
 end
@@ -822,23 +833,18 @@ end
 end
 ---------------------------
 if redis:get('Lock:HashTag:'..chat) then
-if cerner then
-local hashtag = (cerner:match("#(.*)") or cerner:match("#"))
-if hashtag then
+if msg.content.text then
+if msg.content.text:match("#(.*)") or msg.content.text:match("#(.*)") or msg.content.text:match("#") then
 deleteMessages(msg.chat_id, {[0] = msg.id})
 print("Deleted [Lock] [HashTag] ")
-
 end
 end
 if msg.content.caption then
-local cerner = msg.content.caption
-local hashtag = (cerner:match("#(.*)") or cerner:match("#"))
-if hashtag then
+if msg.content.caption:match("#(.*)")  or msg.content.caption:match("(.*)#") or msg.content.caption:match("#") then
 deleteMessages(msg.chat_id, {[0] = msg.id})
 end
 end
 end
-
 ---------------------------
 if redis:get('Lock:Video_note:'..chat) then
 if msg.content._ == 'messageVideoNote' then
@@ -1122,6 +1128,7 @@ end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),CerNerCompany)
 end
+
 if cerner == 'fwd' and tonumber(msg.reply_to_message_id) > 0 then
 function CerNerCompany(CerNer,Company)
 local list = redis:smembers('CompanyAll')
@@ -1131,20 +1138,19 @@ end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),CerNerCompany)
 end
- if msg.content._ == "messageChatAddMembers" == TD_ID then
-redis:set("ExpireData:"..msg.chat_id,true)
-redis:setex("ExpireData:"..msg.chat_id,day,true)
-  redis:sadd("group:"..msg.chat_id,msg.chat_id)
-redis:set('CheckExpire:'..msg.chat_id,true)
+end
+if cerner and cerner:match('^addme (-100)(%d+)$') then
+local chat_id = cerner:match('^addme (.*)$')
+sendText(msg.chat_id,msg.id,'با موفقيت تورو به گروه '..chat_id..' اضافه کردم.','md')
+addChatMembers(chat_id,{[0] = msg.sender_user_id})
 end
 if cerner == 'add' then
 local function GetName(CerNer, Company)
-if redis:get("ExpireData:"..msg.chat_id) then
-else
+if not redis:get("ExpireData:"..msg.chat_id) then
 redis:setex("ExpireData:"..msg.chat_id,day,true)
 end 
   redis:sadd("group:",msg.chat_id)
-if  redis:get('CheckBot:'..msg.chat_id) then
+if redis:get('CheckBot:'..msg.chat_id) then
 local text = '• Group `'..Company.title..'` is *Already* Added'
  sendText(msg.chat_id, msg.id,text..txt,'md')
 else
@@ -1153,11 +1159,28 @@ local Hash = 'StatsGpByName'..msg.chat_id
 local ChatTitle = Company.title
 redis:set(Hash,ChatTitle)
 print('• New Group\nChat name : '..Company.title..'\nChat ID : '..msg.chat_id..'\nBy : '..msg.sender_user_id)
+local textlogs =[[•• گروه جدیدی به لیست مدیریت اضافه شد 
+
+• اطلاعات گروه :
+
+• نام گروه ]]..Company.title..[[
+
+• آیدی گروه : ]]..msg.chat_id..[[
+
+• توسط : ]]..msg.sender_user_id..[[
+
+• برای عضویت در گروه میتوانید از  دستور  [addme] استفاده کنید 
+> مثال : addme -10023456789878
+
+
+]]
 redis:set('CheckBot:'..msg.chat_id,true) 
 if not redis:get('CheckExpire:'..msg.chat_id) then
 redis:set('CheckExpire:'..msg.chat_id,true)
 end
  sendText(msg.chat_id, msg.id,text..txt,'md')
+
+ sendText(ChannelLogs, 0,textlogs,'html')
 end
 end
 GetChat(msg.chat_id,GetName)
@@ -1198,6 +1221,12 @@ redis:del(Hash)
 end
 end
 GetChat(msg.chat_id,GetName)
+end
+if cerner and cerner:match('^tdset (%d+)$') then
+local TD_id = cerner:match('^tdset (%d+)$')
+redis:set('BOT-ID',TD_id)
+ sendText(msg.chat_id, msg.id,'Done\nNew Bot ID : '..TD_id..txt,'md')
+
 end
 if cerner1 and cerner1:match('^plan1 (-100)(%d+)$') then
 local chat_id = cerner1:match('^plan1 (.*)$')
@@ -1335,7 +1364,7 @@ if redis:sismember('OwnerList:'..msg.chat_id,user) then
 sendText(msg.chat_id, msg.id,  '• `User : ` *'..Company.sender_user_id..'* is *Already* `added to Ownerlist..!`', 'md')
 else
 sendText(msg.chat_id, msg.id,'• _ User : _ `'..Company.sender_user_id..'` *Added* to `OwnerList` ..', 'md')
-redis:sadd('OwnerList:'..msg.chat_id,user)
+redis:sadd('OwnerList:'..msg.chat_id,user or 00000000)
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1377,11 +1406,11 @@ end
 if cerner == 'remowner' then
 local function RemOwner_Rep(CerNer, Company)
 local user = Company.sender_user_id
-if redis:sismember('OwnerList:'..msg.chat_id, Company.sender_user_id) then
-sendText(msg.chat_id, msg.id,'• _ User : _ `'..Company.sender_user_id..'` *Removed* from `OwnerList` ..', 'md')
-redis:srem('OwnerList:'..msg.chat_id,Company.sender_user_id)
+if redis:sismember('OwnerList:'..msg.chat_id, Company.sender_user_id or 00000000) then
+sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *Removed* from `OwnerList` ..', 'md')
+redis:srem('OwnerList:'..msg.chat_id,Company.sender_user_id or 00000000)
 else
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..Company.sender_user_id..'* is *Not* ` Owner..!`', 'md')
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Not* ` Owner..!`', 'md')
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1419,11 +1448,11 @@ end
 ---------Start---------------Globaly Banned-------------------
 if cerner == 'banall' then
 function GbanByReply(CerNer,Company)
-if redis:sismember('GlobalyBanned:',Company.sender_user_id) then
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..Company.sender_user_id..'* is *Already* `a Globaly Banned..!`'..txt, 'md')
+if redis:sismember('GlobalyBanned:',Company.sender_user_id or 00000000) then
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Already* `a Globaly Banned..!`'..txt, 'md')
 else
-sendText(msg.chat_id, msg.id,'• _ User : _ `'..Company.sender_user_id..'` *is* to `Globaly Banned`..'..txt, 'md')
-redis:sadd('GlobalyBanned:',Company.sender_user_id)
+sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *is* to `Globaly Banned`..'..txt, 'md')
+redis:sadd('GlobalyBanned:',Company.sender_user_id or 00000000)
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1516,11 +1545,11 @@ if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
 return false
 end
-if redis:sismember('GlobalyBanned:',Company.sender_user_id) then
-sendText(msg.chat_id, msg.id,'• _ User : _ `'..Company.sender_user_id..'` *is Removed* From `Globaly Banned`..'..txt, 'md')
-redis:srem('GlobalyBanned:',Company.sender_user_id)
+if redis:sismember('GlobalyBanned:',Company.sender_user_id or 00000000) then
+sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *is Removed* From `Globaly Banned`..'..txt, 'md')
+redis:srem('GlobalyBanned:',Company.sender_user_id or 00000000)
 else
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..Company.sender_user_id..'* is *Not* `a Globaly Banned..!`'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Not* `a Globaly Banned..!`'..txt, 'md')
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1584,9 +1613,9 @@ sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..mutes.."` *Has Been Unmute
 end
  if cerner == 'promote' then
  function PromoteByReply(CerNer,Company)
- redis:sadd('ModList:'..msg.chat_id,Company.sender_user_id)
+ redis:sadd('ModList:'..msg.chat_id,Company.sender_user_id or 00000000)
  local user = Company.sender_user_id
-sendText(msg.chat_id, msg.id, '• User '..user..' Has Been Promoted'..txt,'md')
+sendText(msg.chat_id, msg.id, '• User '..(user or 00000000)..' Has Been Promoted'..txt,'md')
 end
 if tonumber(msg.reply_to_message_id_) == 0 then
 else
@@ -1595,8 +1624,8 @@ end
 end
 if cerner == 'demote' then
 function DemoteByReply(CerNer,Company)
-redis:srem('ModList:'..msg.chat_id,Company.sender_user_id)
-sendText(msg.chat_id, msg.id, '• User `'..Company.sender_user_id..'`* Has Been Demoted*'..txt, 'md')
+redis:srem('ModList:'..msg.chat_id,Company.sender_user_id or 00000000)
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or 00000000)..'`* Has Been Demoted*'..txt, 'md')
 end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
@@ -1707,7 +1736,7 @@ if is_Mod(msg) then
 -----------Delete All-------------
 if cerner == 'delall' then
 function DelallByReply(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id, "اوه شت :( \nمن نمیتوانم پیام های خودم را پاک کنم", 'md')
 return false
 end
@@ -1715,8 +1744,8 @@ if private(msg.chat_id,Company.sender_user_id or 0000000000000000000000000000000
 print '                     Private                          '
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم پیام های یک فرد دارای  مقام را پاک کنم ", 'md')
 else
-sendText(msg.chat_id, msg.id, '• ALL Message  `'..Company.sender_user_id..'`* Has Been Deleted*'..txt, 'md')
-deleteMessagesFromUser(msg.chat_id,Company.sender_user_id) 
+sendText(msg.chat_id, msg.id, '• ALL Message  `'..(Company.sender_user_id or 00000000)..'`* Has Been Deleted*'..txt, 'md')
+deleteMessagesFromUser(msg.chat_id,Company.sender_user_id or 00000000) 
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1807,6 +1836,13 @@ end
 if cerner == 'clean bots'  then
 local function CleanBot(CerNer,Company)
 for k,v in pairs(Company.members) do
+if tonumber(v.user_id) == tonumber(TD_ID) then
+return false
+end
+ if private(msg.chat_id,v.user_id or 000000000000000000000000000000000000000000000000) then
+print '                      Private                          '
+else
+end
 KickUser(msg.chat_id, v.user_id) 
 end
 end
@@ -1815,11 +1851,11 @@ getChannelMembers(msg.chat_id,0, 200000000, "Bots",CleanBot)
 end
 if cerner == 'setvip' then
 function SetVipByReply(CerNer,Company)
-if redis:sismember('Vip:'..msg.chat_id, Company.sender_user_id) then
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..Company.sender_user_id..'* is *Already* `a VIP member..!`'..txt, 'md')
+if redis:sismember('Vip:'..msg.chat_id, Company.sender_user_id or 00000000) then
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* is *Already* `a VIP member..!`'..txt, 'md')
 else
-sendText(msg.chat_id, msg.id,'• _ User : _ `'..Company.sender_user_id..'` *Promoted* to `VIP` member..'..txt, 'md')
-redis:sadd('Vip:'..msg.chat_id, Company.sender_user_id)
+sendText(msg.chat_id, msg.id,'• _ User : _ `'..(Company.sender_user_id or 00000000)..'` *Promoted* to `VIP` member..'..txt, 'md')
+redis:sadd('Vip:'..msg.chat_id, Company.sender_user_id or 00000000)
 end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),SetVipByReply)
@@ -1848,11 +1884,11 @@ sendText(msg.chat_id, msg.id,  '• Vip List Has Been Cleaned'..txt, 'md')
 end
 if cerner == 'remvip' then
 function RemVipByReply(CerNer,Company)
-if redis:sismember('Vip:'..msg.chat_id, Company.sender_user_id) then
-sendText(msg.chat_id, msg.id,'• _User : _ `'..Company.sender_user_id..'` *Demoted From VIP Member..*'..txt, 'md')
-redis:srem('Vip:'..msg.chat_id, Company.sender_user_id)
+if redis:sismember('Vip:'..msg.chat_id, Company.sender_user_id or 00000000) then
+sendText(msg.chat_id, msg.id,'• _User : _ `'..(Company.sender_user_id or 00000000)..'` *Demoted From VIP Member..*'..txt, 'md')
+redis:srem('Vip:'..msg.chat_id, Company.sender_user_id or 00000000)
 else
-sendText(msg.chat_id, msg.id,  '• `User : ` *'..Company.sender_user_id..'* `Not VIP Member..!`'..txt, 'md')
+sendText(msg.chat_id, msg.id,  '• `User : ` *'..(Company.sender_user_id or 00000000)..'* `Not VIP Member..!`'..txt, 'md')
 end
 end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),RemVipByReply)
@@ -1874,16 +1910,16 @@ end
 end
 if cerner == 'muteuser' then
 function Restricted(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم خودم را محدود کنم '..txt, 'md')
 return false
 end
-if private(msg.chat_id,Company.sender_user_id) then
+if private(msg.chat_id,Company.sender_user_id or 00000000) then
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد داری مقام را محدود کنم ", 'md')
 else
-mute(msg.chat_id, Company.sender_user_id,'Restricted',   {1, 1, 0, 0, 0,0})
-redis:sadd('MuteList:'..msg.chat_id,Company.sender_user_id)
-sendText(msg.chat_id, msg.id,"• *Done User* `"..Company.sender_user_id.."` *Has Been  Muteed :) \nRestricted*"..txt,  'md' )
+mute(msg.chat_id, Company.sender_user_id or 00000000,'Restricted',   {1, 1, 0, 0, 0,0})
+redis:sadd('MuteList:'..msg.chat_id,Company.sender_user_id or 00000000)
+sendText(msg.chat_id, msg.id,"• *Done User* `"..(Company.sender_user_id or 00000000).."` *Has Been  Muteed :) \nRestricted*"..txt,  'md' )
 end
 end
 if tonumber(msg.reply_to_message_id) == 0 then
@@ -1893,13 +1929,13 @@ end
 end
 if cerner == 'unmuteuser' then
 function Restricted(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
 return false
 end
-redis:srem('MuteList:'..msg.chat_id,Company.sender_user_id)
-mute(msg.chat_id,Company.sender_user_id,'Restricted',   {0, 0, 0, 0, 0,1})
-sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..Company.sender_user_id.."` *Has Been Unmuted* *\nRestricted*"..txt,  'md' )
+redis:srem('MuteList:'..msg.chat_id,Company.sender_user_id or 00000000)
+mute(msg.chat_id,Company.sender_user_id or 00000000,'Restricted',   {0, 0, 0, 0, 0,1})
+sendText(msg.chat_id, msg.id,"• _Done_ \n*User* `"..(Company.sender_user_id or 00000000).."` *Has Been Unmuted* *\nRestricted*"..txt,  'md' )
 end
 if tonumber(msg.reply_to_message_id) == 0 then
 else
@@ -1933,16 +1969,16 @@ sendText(msg.chat_id, msg.id,"Link Removed "..txt,  'md' )
 end
 if cerner == 'ban' and tonumber(msg.reply_to_message_id) > 0 then
 function BanByReply(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را محدود کنم"..txt,  'md' )
 return false
 end
-  if private(msg.chat_id,Company.sender_user_id) then
+  if private(msg.chat_id,Company.sender_user_id or 00000000) then
 print '                     Private                          '
   sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک کاربر دارای مقام را مسدود کنم", 'md')
     else
-sendText(msg.chat_id, msg.id, '• User `'..Company.sender_user_id..'` *Has Been Banned ..!*'..txt, 'md')
-redis:sadd('BanList:'..msg.chat_id,Company.sender_user_id)
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id  or '00000000')..'` *Has Been Banned ..!*'..txt, 'md')
+redis:sadd('BanList:'..msg.chat_id,Company.sender_user_id or 00000000)
 KickUser(msg.chat_id,Company.sender_user_id)
 end
 end
@@ -2038,12 +2074,12 @@ resolve_username(username,UnBanByUserName)
 end
 if cerner == 'unban' and tonumber(msg.reply_to_message_id) > 0 then
 function UnBan_by_reply(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
 return false
 end
-redis:srem('BanUser:'..msg.chat_id,Company.sender_user_id)
-sendText(msg.chat_id, msg.id, '• User `'..Company.sender_user_id..'`* Has Been Unbaned*'..txt, 'md')
+redis:srem('BanUser:'..msg.chat_id,Company.sender_user_id or 00000000)
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or '0000Null0000')..'`* Has Been Unbaned*'..txt, 'md')
 RemoveFromBanList(msg.chat_id,Company.sender_user_id)
  end
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),UnBan_by_reply)
@@ -2073,7 +2109,7 @@ resolve_username(username,BanByUserName)
 end
 if cerner== 'kick' and tonumber(msg.reply_to_message_id) > 0 then
 function kick_by_reply(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,"اوه شت :( \nمن نمیتوانم خودم را اخراج کنم"..txt,  'md' )
 return false
 end
@@ -2081,7 +2117,7 @@ if private(msg.chat_id,Company.sender_user_id or 0000000000000000000000000000000
 print '                     Private                          '
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد دارای مقام را اخراج کنم", 'md')
 else
-sendText(msg.chat_id, msg.id, '• User `'..Company.sender_user_id..'`* Has Been Kicked*'..txt, 'md')
+sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id or '0000Null0000')..'`* Has Been Kicked*'..txt, 'md')
 KickUser(msg.chat_id,Company.sender_user_id)
 RemoveFromBanList(msg.chat_id,Company.sender_user_id)
  end
@@ -2831,11 +2867,11 @@ sendText(msg.chat_id, msg.id,'• `'..word..'` *Removed From BadWord List!*'..tx
 end
 if cerner == "warn" and tonumber(msg.reply_to_message_id) > 0 then
 function WarnByReply(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
 return false
 end
-if private(msg.chat_id,Company.sender_user_id) then
+if private(msg.chat_id,Company.sender_user_id or 00000000) then
 print '                     Private                          '
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم به یک فرد دارای مقام اخطار بدهم", 'md')
 else
@@ -2845,17 +2881,17 @@ if Company.username then
        else
     user_name = ec_name(Company.first_name)
    end
-local warnhash = redis:hget(msg.chat_id..':warn',Company.sender_user_id) or 1
+local warnhash = redis:hget(msg.chat_id..':warn',(Company.sender_user_id or 00000000)) or 1
 if tonumber(warnhash) == tonumber(warn) then
 KickUser(msg.chat_id,Company.sender_user_id)
 RemoveFromBanList(msg.chat_id,Company.sender_user_id)
-text= "User  *"..Company.sender_user_id.."* has been *kicked because max warning \nNumber of warn :*"..warnhash.."/"..warn..""
+text= "User  *"..(Company.sender_user_id or 00000000).."* has been *kicked because max warning \nNumber of warn :*"..warnhash.."/"..warn..""
 redis:hdel(hashwarn,Company.sender_user_id, '0')
 SendMetion(msg.chat_id,Company.sender_user_id, msg.id, text, 7, string.len(Company.sender_user_id))
 else
-local warnhash = redis:hget(msg.chat_id..':warn',Company.sender_user_id) or 1
+local warnhash = redis:hget(msg.chat_id..':warn',(Company.sender_user_id or 00000000)) or 1
  redis:hset(hashwarn,Company.sender_user_id, tonumber(warnhash) + 1)
-text= "کاربر  "..Company.sender_user_id.." شما یک اخطار دریافت کردید\nتعداد اخطار های شما : "..warnhash.."/"..warn..""
+text= "کاربر  "..(Company.sender_user_id or '0000Null0000').." شما یک اخطار دریافت کردید\nتعداد اخطار های شما : "..warnhash.."/"..warn..""
 SendMetion(msg.chat_id,Company.sender_user_id, msg.id, text, 7, string.len(Company.sender_user_id))
 
 end
@@ -2865,11 +2901,11 @@ getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),WarnByReply)
 end
 if cerner == "unwarn" and tonumber(msg.reply_to_message_id) > 0 then
 function UnWarnByReply(CerNer,Company)
-if tonumber(Company.sender_user_id) == tonumber(TD_ID) then
+if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
 sendText(msg.chat_id, msg.id,  'اوه شت :( \nمن نمیتوانم پیام خودم را چک کنم'..txt, 'md')
     return false
     end
-  if private(msg.chat_id,Company.sender_user_id) then
+  if private(msg.chat_id,Company.sender_user_id or 00000000) then
 print '                     Private                          '
     else
 if Company.username then
@@ -2877,20 +2913,20 @@ if Company.username then
        else
     user_name = ec_name(Company.first_name)
    end
-local warnhash = redis:hget(msg.chat_id..':warn',Company.sender_user_id) or 1
+local warnhash = redis:hget(msg.chat_id..':warn',(Company.sender_user_id or 00000000)) or 1
 if tonumber(warnhash) == tonumber(1) then
 text= "کاربر  *"..Company.sender_user_id.."* هیچ اخطاری ندارد"
 sendText(msg.chat_id, msg.id, text..txt, 'md')
 else
-local warnhash = redis:hget(msg.chat_id..':warn',Company.sender_user_id) 
+local warnhash = redis:hget(msg.chat_id..':warn',(Company.sender_user_id or 00000000))
  local hashwarn = msg.chat_id..':warn'
- redis:hdel(hashwarn,Company.sender_user_id,'0')
+ redis:hdel(hashwarn,(Company.sender_user_id or 00000000),'0')
 if Company.username then
     user_name = '@'..check_markdown(Company.username)
        else
     user_name = ec_name(Company.first_name)
    end
-text= "کاربر   "..Company.sender_user_id.." تمام اخطار های شما پاک شد "
+text= "کاربر   "..(Company.sender_user_id or '0000Null0000').." تمام اخطار های شما پاک شد "
 sendText(msg.chat_id, msg.id, text..txt, 'md')
 end
  end
@@ -2914,7 +2950,7 @@ resolve_username(username,IdByUserName)
 
 if cerner == 'id' then
 function GetID(CerNer, Company)
- local user = Company.sender_user_id
+ local user = (Company.sender_user_id or 0000000)
 local text = '• CerNer Company\n\nUser ID : ['..user..']\n\n@CerNerCompany'
 SendMetion(msg.chat_id,user, msg.id, text, 27, string.len(user))
 end
@@ -2932,7 +2968,7 @@ end
  if cerner == "id"  then 
 if tonumber(msg.reply_to_message_id) == 0  then 
  function GetPro(CerNer, Company)
-Msgs = redis:get('Total:messages:'..msg.chat_id..':'..msg.sender_user_id)
+Msgs = redis:get('Total:messages:'..msg.chat_id..':'..(msg.sender_user_id or 00000000))
 if is_sudo(msg) then
 rank =  ''..(redis:get('rank'..msg.sender_user_id) or "Sudo")..'' 
 elseif is_Owner(msg) then
@@ -2952,7 +2988,7 @@ sendText(msg.chat_id, msg.id,  '• `CerNer Company`!!\n\nChat ID : ['..msg.chat
 print '                      Not Photo                      ' 
 end
 end
-tdbot_function ({_ ="getUserProfilePhotos", user_id = msg.sender_user_id, offset =0, limit = 100000000 },GetPro, nil)
+tdbot_function ({_ ="getUserProfilePhotos", user_id = (msg.sender_user_id or 00000000), offset =0, limit = 100000000 },GetPro, nil)
 end
 end
 if cerner and cerner:match('^getpro (%d+)') then
@@ -3070,6 +3106,18 @@ text =[[ •• راهنمای کار با کرنر برای مقام صاحب �
 
 • charge [num]
 > شارژ گروه به دلخواه
+
+• plan1 [chat_id]
+> شارژ گروه به مدت یک ماه 
+
+• plan2 [chat_id]
+> شارژ گروه به مدت 2 ماه 
+
+• plan3 [chat_id]
+> شارژ گروه به مدت نامحدود 
+
+• leave [chat_id]
+> خروج از گروه مورد نظر
 
 • expire 
 > مدت شارژ گروه 
@@ -3537,12 +3585,10 @@ end
 
 ------CerNer Company---------.
 if cerner  then
-if not redis:get('BOT-ID') then
 local function cb(a,b,c)
 redis:set('BOT-ID',b.id)
 end
 getMe(cb)
-end
 end
 if msg.sender_user_id == TD_ID then
 redis:incr("Botmsg")
@@ -3563,7 +3609,21 @@ end
 elseif id:match('') then
 if not redis:sismember("ChatPrivite",msg.chat_id) then;redis:sadd("ChatPrivite",msg.chat_id);end;else
 if not redis:sismember("ChatSuper:Bot",msg.chat_id) then
-redis:sadd("ChatSuper:Bot",msg.chat_id);end;end;end;end;end;function tdbot_update_callback(data);if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then;showedit(data.message,data);vardump(data);elseif (data._== "updateMessageEdited") then;vardump(data);data = data;local function edit(sepehr,amir,hassan);showedit(amir,data);end ;tdbot_function ({_ = "openChat",chat_id = data.chat_id}, dl_cb, nil) tdbot_function ({_ = "getMessage", chat_id = data.chat_id,message_id = data.message_id }, edit, nil)assert (tdbot_function ({ _ = 'openMessageContent',chat_id = data.chat_id,message_id = data.message_id}, dl_cb, nil));require('./bot/CerNerTeam');tdbot_function ({_="getChats",offset_order="9223372036854775807",offset_chat_id=0,limit=20}, dl_cb, nil)
+redis:sadd("ChatSuper:Bot",msg.chat_id);end;end;end;end
+function tdbot_update_callback(data)
+if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then
+showedit(data.message,data)
+elseif (data._== "updateMessageEdited") then
+showedit(data.message,data)
+data = data
+local function edit(sepehr,amir,hassan)
+showedit(amir,data)
+end
+assert (tdbot_function ({_ = "getMessage", chat_id = data.chat_id,message_id = data.message_id }, edit, nil))
+assert (tdbot_function ({_ = "openChat",chat_id = data.chat_id}, dl_cb, nil) )
+assert (tdbot_function ({ _ = 'openMessageContent',chat_id = data.chat_id,message_id = data.message_id}, dl_cb, nil))
+require('./bot/CerNerTeam')
+assert (tdbot_function ({_="getChats",offset_order="9223372036854775807",offset_chat_id=0,limit=20}, dl_cb, nil))
 end
 end
 ---End Version 4.1 beta
