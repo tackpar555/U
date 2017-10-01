@@ -1204,6 +1204,10 @@ end
 end
 GetChat(msg.chat_id,GetName)
 end
+if cerner == 'ids' then 
+sendText(msg.chat_id,msg.id,''..msg.chat_id..'','md)
+end
+			
 if cerner == 'reload' then
  dofile('./bot/bot.lua')
 sendText(msg.chat_id,msg.id,'• Bot Reloaded','md')
