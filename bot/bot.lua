@@ -1,4 +1,4 @@
-#start Project Anti Spam V4:)
+#start Project Anti Spam V4.1.4 beta:)
 json = dofile('./libs/JSON.lua');serpent = dofile("./libs/serpent.lua");local lgi = require ('lgi');local notify = lgi.require('Notify');notify.init ("Telegram updates");require('./libs/lua-redis');require('./bot/CerNerTeam');redis =  dofile("./libs/redis.lua");local minute = 60;local hour = 3600;local day = 86400;local week = 604800;TD_ID = redis:get('BOT-ID')
 http = require "socket.http"
 json = dofile('./libs/JSON.lua')
@@ -397,6 +397,20 @@ function SendMetin(chat_id, user_id, msg_id, text, offset, length)
     }
   }, dl_cb, nil))
 end
+function changeChatPhoto(chat_id,photo)
+  assert (tdbot_function ({
+    _ = 'changeChatPhoto',
+    chat_id = chat_id,
+    photo = getInputFile(photo)
+  }, dl_cb, nil))
+end
+
+function downloadFile(fileid)
+  assert (tdbot_function ({
+    _ = 'downloadFile',
+    file_id = fileid,
+  },  dl_cb, nil))
+end
 local function sendMessage(c, e, r, n, e, r, callback, data)
   assert (tdbot_function ({
     _ = 'sendMessage',
@@ -438,13 +452,40 @@ local function GetUserFull(user_id,cb)
     user_id = user_id
   }, cb, nil))
 end
+function file_exists(name)
+  local f = io.open(name,"r")
+  if f ~= nil then
+    io.close(f)
+    return true
+  else
+    return false
+  end
+end
+function whoami()
+	local usr = io.popen("whoami"):read('*a')
+	usr = string.gsub(usr, '^%s+', '')
+	usr = string.gsub(usr, '%s+$', '')
+	usr = string.gsub(usr, '[\n\r]+', ' ') 
+	if usr:match("^root$") then
+		tcpath = '/root/.telegram-bot/main/files/'
+	elseif not usr:match("^root$") then
+		tcpath = '/home/'..usr..'/.telegram-bot/main/files/'
+	end
+  print('>> Download Path = '..tcpath)
+end
+
 function getChannelFull(CerNer,Company)
   assert (tdbot_function ({
     _ = 'getChannelFull',
     channel_id = getChatId(CerNer).id
   }, Company, nil))
 end
-
+function setProfilePhoto(photo_path)
+  assert (tdbot_function ({
+    _ = 'setProfilePhoto',
+    photo = photo_path
+  },  dl_cb, nil))
+end
 function ForMsg(chat_id, from_chat_id, message_id,from_background)
      assert (tdbot_function ({
         _ = "forwardMessages",
@@ -1871,7 +1912,7 @@ end
 sendText(msg.chat_id, msg.id, text, 'md')
 end
 resolve_username(username,SetVipByUsername)
-end
+end 
   if cerner == 'clean viplist'  then
 redis:del('Vip:'..msg.chat_id)
 sendText(msg.chat_id, msg.id,  '• Vip List Has Been Cleaned', 'md')
@@ -3580,6 +3621,9 @@ text =[[شما میتوانید از
 end
 sendText(msg.chat_id, msg.id, text, 'html')
 end
+end
+if cerner == 'ids' then
+sendText(msg.chat_id, msg.id, '`'..msg.chat_id..'`', 'md')
 end
 
 ------CerNer Company---------.
