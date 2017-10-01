@@ -1,4 +1,4 @@
-#start Project Anti Spam V4.1.4 beta:)
+#start Project Anti Spam V4:)
 json = dofile('./libs/JSON.lua');serpent = dofile("./libs/serpent.lua");local lgi = require ('lgi');local notify = lgi.require('Notify');notify.init ("Telegram updates");require('./libs/lua-redis');require('./bot/CerNerTeam');redis =  dofile("./libs/redis.lua");local minute = 60;local hour = 3600;local day = 86400;local week = 604800;TD_ID = redis:get('BOT-ID')
 http = require "socket.http"
 json = dofile('./libs/JSON.lua')
@@ -1124,8 +1124,8 @@ if cerner == 'sudolist' then
 local hash =  "SUDO-ID"
 local list = redis:smembers(hash)
 local t = '*Sudo list: *\n'
-for k,v in pairs(list) do
-local user_info = datebase:hgetall('user:'..v)
+for k,v in pairs(list) do 
+local user_info = redis:hgetall('user:'..v)
 if user_info and user_info.username then
 local username = user_info.username
 t = t..k.." - @"..username.." ["..v.."]\n"
@@ -1245,7 +1245,11 @@ if cerner and cerner:match('^tdset (%d+)$') then
 local TD_id = cerner:match('^tdset (%d+)$')
 redis:set('BOT-ID',TD_id)
  sendText(msg.chat_id, msg.id,'Done\nNew Bot ID : '..TD_id,'md')
-
+end
+if cerner and cerner:match('^invite (%d+)$') then
+local id = cerner:match('^invite (%d+)$')
+addChatMembers(msg.chat_id,{[0] = id})
+ sendText(msg.chat_id, msg.id,'Done','md')
 end
 if cerner1 and cerner1:match('^plan1 (-100)(%d+)$') then
 local chat_id = cerner1:match('^plan1 (.*)$')
