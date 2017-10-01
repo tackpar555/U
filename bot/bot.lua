@@ -21,11 +21,7 @@ function is_sudo(msg)
   end
   return var
 end
-  if user == tonumber(Full_Sudo) then
-    var = true
-  end
-  return var
-end
+ end
 function is_Fullsudo(msg)
   local var = false
   for v,user in pairs(Full_Sudo) do
