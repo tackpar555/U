@@ -1205,7 +1205,7 @@ end
 GetChat(msg.chat_id,GetName)
 end
 if cerner == 'ids' then 
-sendText(msg.chat_id,msg.id,'`'..msg.chat_id..'`','md')
+sendText(msg.chat_id,msg.id,''..msg.chat_id..'','md')
 end
 			
 if cerner == 'reload' then
@@ -3002,6 +3002,23 @@ else
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),GetID)
 end
 end
+if cerner and cerner:match('^getpro (%d+)') then
+local offset = tonumber(cerner:match('^getpro (%d+)'))
+if offset > 50 then
+sendText(msg.chat_id, msg.id,'اوه شت :( \n من بیشتر از 50 عکس پروفایل شما را نمیتوانم ارسال کنم • ','md')
+elseif offset < 1 then
+sendText(msg.chat_id, msg.id, 'لطفا عددی بزرگتر از 0  بکار ببرید • ', 'md')
+else
+function GetPro1(CerNer, Company)
+ if Company.photos[0] then
+sendPhoto(msg.chat_id, msg.id, 0, 1, nil, Company.photos[0].sizes[2].photo.persistent_id,'• Total Profile Photos : '..Company.total_count..'\n• Photo Size : '.. Company.photos[0].sizes[2].photo.size)
+else
+sendText(msg.chat_id, msg.id, 'شما عکس پروفایل '..offset..' ندارید', 'md')
+end
+end
+tdbot_function ({_ ="getUserProfilePhotos", user_id = msg.sender_user_id, offset = offset-1, limit = 100000000000000000000000 },GetPro1, nil)
+end
+end
 if cerner and cerner:match('^whois (%d+)') then
 local user_id = tonumber(cerner:match('^whois (%d+)'))
  local user = user_id
@@ -3034,25 +3051,7 @@ end
 tdbot_function ({_ ="getUserProfilePhotos", user_id = (msg.sender_user_id or 00000000), offset =0, limit = 100000000 },GetPro, nil)
 end
 end
-if cerner and cerner:match('^getpro (%d+)') then
-local offset = tonumber(cerner:match('^getpro (%d+)'))
-if tonumber(offset) < 1 then
-sendText(msg.chat_id, msg.id, 'لطفا عددی بزرگتر از 0  بکار ببرید • ', 'md')
-else
- if offset > 100 then
-sendText(msg.chat_id, msg.id,'اوه شت :( \n من بیشتر از 50 عکس پروفایل شما را نمیتوانم ارسال کنم • ','md')
-else
-function GetPro(CerNer, Company)
- if Company.photos[0] then
-sendPhoto(msg.chat_id, msg.id, 0, 1, nil, Company.photos[0].sizes[2].photo.persistent_id,'• Total Profile Photos : '..Company.total_count..'\n• Photo Size : '.. Company.photos[0].sizes[2].photo.size)
-else
-sendText(msg.chat_id, msg.id, 'شما عکس پروفایل '..offset..' ندارید', 'md')
-end
-end
-end
-tdbot_function ({_ ="getUserProfilePhotos", user_id = msg.sender_user_id, offset = offset-1, limit = 1 },GetPro, nil)
-end
-end
+
 if cerner == 'me' then
 local function GetName(CerNer, Company)
 if is_sudo(msg) then
@@ -3629,9 +3628,6 @@ text =[[شما میتوانید از
 end
 sendText(msg.chat_id, msg.id, text, 'html')
 end
-end
-if cerner == 'ids' then
-sendText(msg.chat_id, msg.id, '`'..msg.chat_id..'`', 'md')
 end
 
 ------CerNer Company---------.
