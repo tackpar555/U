@@ -84,6 +84,36 @@ sleep 0.2
 printf "\n• Logfile created: $PWD/logs/logluarocks_${today}.txt\nDone\n"
 rm -rf luarocks-2.2.2*
 }
+startbotlogo() {
+sleep 0.5
+clear
+f=3 b=4
+for j in f b; do
+for i in {0..7}; do
+printf -v $j$i %b "\e[${!j}${i}m"
+done
+done
+echo -e "                \e[100m                                Bot Running                                \e[00;37;40m"
+
+bld=$'\e[1m'
+rst=$'\e[0m'
+cat << EOF
+ $f1  ▀▄   ▄▀     $f2 ▄▄▄████▄▄▄    $f3  ▄██▄     $f4  ▀▄   ▄▀     $f5 ▄▄▄████▄▄▄    $f6  ▄██▄  $rst
+ $f1 ▄█▀███▀█▄    $f2███▀▀██▀▀███   $f3▄█▀██▀█▄   $f4 ▄█▀███▀█▄    $f5███▀▀██▀▀███   $f6▄█▀██▀█▄$rst
+ $f1█▀███████▀█   $f2▀▀███▀▀███▀▀   $f3▀█▀██▀█▀   $f4█▀███████▀█   $f5▀▀███▀▀███▀▀   $f6▀█▀██▀█▀$rst
+ $f1▀ ▀▄▄ ▄▄▀ ▀   $f2 ▀█▄ ▀▀ ▄█▀    $f3▀▄    ▄▀   $f4▀ ▀▄▄ ▄▄▀ ▀   $f5 ▀█▄ ▀▀ ▄█▀    $f6▀▄    ▄▀$rst
+ 
+EOF
+echo  "                           Company Launcher          "
+echo "                            By Amir Bagheri           "
+echo ""
+cat << EOF
+ $bld$f1▄ ▀▄   ▄▀ ▄   $f2 ▄▄▄████▄▄▄    $f3  ▄██▄     $f4▄ ▀▄   ▄▀ ▄   $f5 ▄▄▄████▄▄▄    $f6  ▄██▄  $rst
+ $bld$f1█▄█▀███▀█▄█   $f2███▀▀██▀▀███   $f3▄█▀██▀█▄   $f4█▄█▀███▀█▄█   $f5███▀▀██▀▀███   $f6▄█▀██▀█▄$rst
+ $bld$f1▀█████████▀   $f2▀▀▀██▀▀██▀▀▀   $f3▀▀█▀▀█▀▀   $f4▀█████████▀   $f5▀▀▀██▀▀██▀▀▀   $f6▀▀█▀▀█▀▀$rst
+ $bld$f1 ▄▀     ▀▄    $f2▄▄▀▀ ▀▀ ▀▀▄▄   $f3▄▀▄▀▀▄▀▄   $f4 ▄▀     ▀▄    $f5▄▄▀▀ ▀▀ ▀▀▄▄   $f6▄▀▄▀▀▄▀▄$rst
+EOF
+}
  config() {
     dir=$PWD
     wget http://luarocks.org/releases/luarocks-${luarocks_version}.tar.gz &>/dev/null
@@ -117,7 +147,18 @@ printf "\nDone\n"
 launch() {
 ./tg | grep -v "{"
 }
-
+resetlogin() {
+ rm -rf $HOME/.telegram-bot
+}
+CerNer(){
+mkdir $HOME/.telegram-bot; cat <<EOF > $HOME/.telegram-bot/config
+default_profile = "main";
+main = {
+lua_script = "$HOME/Anti-Spam/bot/bot.lua";
+};
+EOF
+printf "\nDone\n"
+}
 loginCli() {
 ./tg -p main --login --phone=${1}
 } 
@@ -131,16 +172,9 @@ echo chmod +x C | /bin/bash
 version=$(echo "./C tgcli_version" | /bin/bash)
 updateTD $version
 }
-function updateTD() {
+updateTD() {
 wget --progress=bar:force https://valtman.name/files/telegram-bot-${1}-linux 2>&1 | get_sub
 mv telegram-bot-${1}-linux tg; chmod +x tg
-}
-starting() {
-start=(
-"ربات با موفقیت اجرا شد !"
-)
-printf "${start}"
-printf "\n"
 }
 CONFIG() {
 TXT=(
@@ -173,11 +207,18 @@ read TOKEN
 loginApi ${TOKEN}
 echo 'عملیات  انجام شد !'
 exit;;
+Change-Login)
+echo 'عملیات درحال انجام'
+sleep 1
+resetlogin
+CerNer
+echo 'عملیات  انجام شد !'
+exit;;
 install)
 install
 exit;;
 start)
-starting
+startbotlogo
 launch
 exit;;
 update)
@@ -192,6 +233,7 @@ echo "راهنمای اجرای سورس کرنر :  ••  "
 echo "install -  نصب پکیج های مورد نیاز • "
 echo "config - پیکربندی ودانلود  تیجی • "
 echo "start - راه اندازی ربات   • "
+echo "Change-Login - تغغیر حالت ربات    • "
 echo "login-Cli - لوگین شدن به عنوان ربات cli "
 echo "login-Api - لوگین شدن به عنوان ربات Api "
 echo "update - اپدیت سورس • "
