@@ -10,6 +10,19 @@ ChannelLogs= -1001112806544
 MsgTime = os.time() - 60
 Plan1 = 2592000
 Plan2 = 7776000
+local function getParse(parse_mode)
+  local P = {}
+  if parse_mode then
+    local mode = parse_mode:lower()
+    if mode == 'markdown' or mode == 'md' then
+      P._ = 'textParseModeMarkdown'
+    elseif mode == 'html' then
+      P._ = 'textParseModeHTML'
+    end
+  end
+
+  return P
+end
 function is_sudo(msg)
   local var = false
  for v,user in pairs(SUDO_ID) do
@@ -35,7 +48,7 @@ function do_notify (user, msg)
 local n = notify.Notification.new(user, msg)
 n:show ()
 end
-function is_GloballBan(user_id)
+function is_GlobalyBan(user_id)
   local var = false
   local hash = 'GlobalyBanned:'
   local gbanned = redis:sismember(hash, user_id)
@@ -354,7 +367,7 @@ local function getInputFile(file, conversion_str, expectedsize)
 
   return infile
 end
-function addChatMembers(chatid, userids, callback, data)
+function addChatMembers(chatid, userids)
   assert (tdbot_function ({
     _ = 'addChatMembers',
     chat_id = chatid,
@@ -547,6 +560,7 @@ function SendMetion(chat_id, user_id, msg_id, text, offset, length)
     }
   }, dl_cb, nil))
 end
+
 function dl_cb(arg, data)
 end
  function showedit(msg,data)
@@ -556,6 +570,7 @@ if msg.date < tonumber(MsgTime) then
 print('OLD MESSAGE')
  return false
 end
+
 function is_supergroup(msg)
   chat_id = tostring(msg.chat_id)
   if chat_id:match('^-100') then 
@@ -592,17 +607,38 @@ end
 if is_supergroup(msg) then
 
 -------------Flood Check------------
+function antifloodstats(msg,status)
+if status == "kickuser" then
+ if tonumber(msg.sender_user_id) == tonumber(TD_ID)  then
+    return true
+    end
+sendText(msg.chat_id, msg.id,'*User*  : `'..(msg.sender_user_id or 021)..'`  *has been* _kicked_ *for flooding*' ,'md')
+KickUser(msg.chat_id,msg.sender_user_id)
+end
+if status == "muteuser" then
+ if tonumber(msg.sender_user_id) == tonumber(TD_ID)  then
+    return true
+    end
+if is_MuteUser(msg.chat_id,msg.sender_user_id) then
+ else
+sendText(msg.chat_id, msg.id,'*User*  : `'..(msg.sender_user_id or 021)..'`  *has been* _Muted_ *for flooding*' ,'md')
+mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {0, 1, 0, 0, 0,0})
+redis:sadd('MuteList:'..msg.chat_id,msg.sender_user_id or 021)
+end
+end
+end
 if redis:get('Lock:Flood:'..msg.chat_id) then
 if not is_Mod(msg) then
-local post_count = 'user:' .. msg.sender_user_id .. ':flooder'
+local post_count = 'user1:' .. msg.sender_user_id .. ':flooder'
 local msgs = tonumber(redis:get(post_count) or 0)
 if msgs > tonumber(NUM_MSG_MAX) then
-KickUser(msg.chat_id,msg.sender_user_id)
-deleteMessagesFromUser(msg.chat_id, msg.sender_user_id) 
-deleteMessagesFromUser(msg.chat_id, TD_ID) 
-
-sendText(msg.chat_id, msg.id,'*User * : `'..msg.sender_user_id..'` * has been kicked for flooding *\n','md')
+if redis:get('user:'..msg.sender_user_id..':flooder') then
+local status = redis:get('Flood:Status:'..msg.chat_id)
+antifloodstats(msg,status)
+return false
+else
 redis:setex('user:'..msg.sender_user_id..':flooder', 15, true)
+end
 end
 redis:setex(post_count, tonumber(TIME_CHECK), msgs+1)
 end
@@ -695,24 +731,16 @@ end
     if msg.content._ == "messagePhoto" then
       MsgType = 'Photo'
 end
-if msg.sender_user_id and is_GloballBan(msg.sender_user_id) then
+if msg.sender_user_id and is_GlobalyBan(msg.sender_user_id) then
+sendText(msg.chat_id, msg.id,'*User * : `'..msg.sender_user_id..'` *is Globall Banned *','md')
 KickUser(msg.chat_id,msg.sender_user_id)
 end
 
 if MsgType == 'AddUser' then
 function ByAddUser(CerNer,Company)
-if is_GloballBan(Company.id) then
+if is_GlobalyBan(Company.id) then
 print '                      >>>>Is  Globall Banned <<<<<       '
 sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Globall Banned *','md')
-end
-GetUser(msg.content.member_user_ids[0],ByAddUser)
-end
-end
-if MsgType == 'AddUser' then
-function ByAddUser(CerNer,Company)
-if is_Banned(msg.chat_id,Company.id) then
-print '                      >>>>Is Banned <<<<<       '
-sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Banned *','md')
 end
 GetUser(msg.content.member_user_ids[0],ByAddUser)
 end
@@ -724,12 +752,15 @@ local welcome = (redis:get('Welcome:'..msg.chat_id) or 'disable')
 if welcome == 'enable' then
 if MsgType == 'JoinedByLink' then
 print '                       JoinedByLink                        '
-if not is_Banned(msg.chat_id,msg.sender_user_id) then
+if is_Banned(msg.chat_id,msg.sender_user_id) then
+KickUser(msg.chat_id,msg.sender_user_id)
+sendText(msg.chat_id, msg.id,'*User * : `'..msg.sender_user_id..'` *is Globaly Banned *','md')
+else
 function WelcomeByLink(CerNer,Company)
 if redis:get('Text:Welcome:'..msg.chat_id) then
 txtt = redis:get('Text:Welcome:'..msg.chat_id)
 else
-txtt = 'سلام {first}\nخوش امدی'
+txtt = 'سلام \nخوش امدی'
 end
 local hash = "Rules:"..msg.chat_id
 local cerner = redis:get(hash) 
@@ -738,38 +769,57 @@ rules=cerner
 else
 rules= '`قوانین ثبت نشده است`'
 end
+local hash = "Link:"..msg.chat_id
+local cerner = redis:get(hash) 
+if cerner then
+link=cerner
+else
+link= 'Link is not seted'
+end
 local txtt = txtt:gsub('{first}',ec_name(Company.first_name))
 local txtt = txtt:gsub('{rules}',rules)
+local txtt = txtt:gsub('{link}',link)
 local txtt = txtt:gsub('{last}',Company.last_name or '')
-local txtt = txtt:gsub('{username}',check_markdown(Company.username) or '')
+local txtt = txtt:gsub('{username}','@'..check_markdown(Company.username) or '')
 sendText(msg.chat_id, msg.id, txtt,'md')
  end
 GetUser(msg.sender_user_id,WelcomeByLink)
 end
 end
-if MsgType == 'AddUser' then
+if msg.add then
+if is_Banned(msg.chat_id,msg.add) then
+KickUser(msg.chat_id,msg.add)
+sendText(msg.chat_id, msg.id,'*User * : `'..msg.add..'` *is Banned *','md')
+else
 function WelcomeByAddUser(CerNer,Company)
-if not is_Banned(msg.chat_id,Company.id) then
-print('New User : \nChatID : '..msg.chat_id..'\nUser ID : '..Company.id..'')
+print('New User : \nChatID : '..msg.chat_id..'\nUser ID : '..msg.add..'')
 if redis:get('Text:Welcome:'..msg.chat_id) then
 txtt = redis:get('Text:Welcome:'..msg.chat_id)
 else
-txtt = 'سلام \n {first} خوش امدی'
+txtt = 'سلام \n خوش امدی'
 end
 local hash = "Rules:"..msg.chat_id
 local cerner = redis:get(hash) 
 if cerner then
 rules=cerner
 else
-rules= '`قوانین ثبت نشده است`'
+rules= 'قوانین ثبت نشده است'
+end
+local hash = "Link:"..msg.chat_id
+local cerner = redis:get(hash) 
+if cerner then
+link=cerner
+else
+link= 'Link is not seted'
 end
 local txtt = txtt:gsub('{first}',ec_name(Company.first_name))
 local txtt = txtt:gsub('{rules}',rules)
+local txtt = txtt:gsub('{link}',link)
 local txtt = txtt:gsub('{last}',Company.last_name or '')
-local txtt = txtt:gsub('{username}',check_markdown(Company.username) or '')
+local txtt = txtt:gsub('{username}','@'..check_markdown(Company.username) or '')
 sendText(msg.chat_id, msg.id, txtt,'html')
 end
-GetUser(msg.content.member_user_ids[0],WelcomeByAddUser)
+GetUser(msg.add,WelcomeByAddUser)
 end
 end
 end
@@ -779,7 +829,6 @@ if msg.send_state._ == "messageIsSuccessfullySent" then
 return false 
 end   
 if is_supergroup(msg) then
-
 if not is_sudo(msg) then
 if not redis:sismember('CompanyAll',msg.chat_id) then
 redis:sadd('CompanyAll',msg.chat_id)
@@ -890,6 +939,7 @@ print("Deleted [Lock] [Persian] ")
 end
 end
 end
+
 --------------------------
 if redis:get('Lock:English:'..chat) then
 if cerner and (cerner:match("[A-Z]") or cerner:match("[a-z]")) then
@@ -1096,18 +1146,18 @@ local function run_bash(str)
     local result = cmd:read('*all')
     return result
 end
- function check_markdown(text)
-		str = text
-		if str:match('_') then
-			output = str:gsub('[[_]]',[[_]])
-		elseif str:match('*') then
-			output = str:gsub('*','\\*')
-		elseif str:match('`') then
-			output = str:gsub('`','\\`')
-		else
-			output = str
-		end
-	return output
+function check_markdown(text)
+str = text
+if str:match('_') then
+output = str:gsub('_',[[\_]])
+elseif str:match('*') then
+output = str:gsub('*','\\*')
+elseif str:match('`') then
+output = str:gsub('`','\\`')
+else
+output = str
+end
+return output
 end
 if is_Fullsudo(msg) then
 if cerner and cerner:match('^setsudo (%d+)') then
@@ -1739,34 +1789,17 @@ redis:srem('ModList:'..msg.chat_id,user)
 sendText(msg.chat_id, msg.id, '• User `'..user..'`* Has Been Demoted*', 'md')
 end
 if cerner == 'mute all' then
-    local function pro(arg,data)
-
-if redis:get("Check:Mutell:"..msg.chat_id) then
-text = 'هر 5دقیقه یکبار ممکن است'
-end
-for k,v in pairs(data.members) do
-
 redis:set('MuteAll:'..msg.chat_id,true)
- mute(msg.chat_id, v.user_id,'Restricted',   {1, 1, 0, 0, 0,0})
-   redis:setex("Check:Mutell:"..msg.chat_id,350,true)
-end
-end
-getChannelMembers(msg.chat_id,"Recent",0,1000000000,pro)
-      sendText(msg.chat_id, msg.id,'• All Members Has Been Muted' ,'md')
+sendText(msg.chat_id, msg.id,'• Mute ALL Has Been Enabled' ,'md')
 end
 if cerner == 'unmute all' then
-    local function pro(arg,data)
-if redis:get("Check:UNMutell:"..msg.chat_id) then
-text = 'هر 5دقیقه یکبار ممکن است'
-end
-for k,v in pairs(data.members) do
 redis:del('MuteAll:'..msg.chat_id)
- mute(msg.chat_id, v.user_id,'Restricted',    {0, 0, 0, 0, 1,1})
-   redis:setex("Check:UNMutell:"..msg.chat_id,350,true)
+local mutes =  redis:smembers('Mutes:'..msg.chat_id)
+for k,v in pairs(mutes) do
+redis:srem('MuteList:'..msg.chat_id,v)
+mute(msg.chat_id,v,'Restricted',   {0, 0, 0, 0, 0,1})
 end
-end
-getChannelMembers(msg.chat_id, "Recent", 0, 100000000000,pro)
-sendText(msg.chat_id, msg.id,'All Members Has Been UnMuted' ,'md')
+sendText(msg.chat_id, msg.id,'Mute All Has Been Disabled' ,'md')
 end
    if cerner == 'clean modlist'  then
 redis:del('ModList:'..msg.chat_id)
@@ -1951,6 +1984,17 @@ redis:sadd('MuteList:'..msg.chat_id,mutess)
 sendText(msg.chat_id, msg.id,"• *Done User* `"..mutess.."` *Has Been  Muteed :) \nRestricted*",  'md' )
 end
 end
+if cerner1 and cerner1:match('^([Ss]etflood) (.*)$') then
+local status = {string.match(cerner, "^([Ss]etflood) (.*)$")}
+if status[2] == 'kickuser' then
+redis:set("Flood:Status:"..msg.chat_id,'kickuser') 
+sendText(msg.chat_id, msg.id, '*Flood mode is set to* _Kickuser_', 'md')
+end
+if status[2] == 'muteuser' then
+redis:set("Flood:Status:"..msg.chat_id,'muteuser') 
+sendText(msg.chat_id, msg.id, '*Flood mode is set to* _Muteuser_', 'md')
+end
+end
 if cerner == 'muteuser' then
 function Restricted(CerNer,Company)
 if tonumber(Company.sender_user_id or 00000000) == tonumber(TD_ID) then
@@ -2021,7 +2065,7 @@ print '                     Private                          '
   sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک کاربر دارای مقام را مسدود کنم", 'md')
     else
 sendText(msg.chat_id, msg.id, '• User `'..(Company.sender_user_id  or '00000000')..'` *Has Been Banned ..!*', 'md')
-redis:sadd('BanList:'..msg.chat_id,Company.sender_user_id or 00000000)
+redis:sadd('BanUser:'..msg.chat_id,Company.sender_user_id or 00000000)
 KickUser(msg.chat_id,Company.sender_user_id)
 end
 end
@@ -2140,6 +2184,7 @@ print '                     Private                          '
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک کاربر دارای مقام را مسدود کنم", 'md')
 else
 if Company.id then
+redis:sadd('BanUser:'..msg.chat_id,Company.id)
 KickUser(msg.chat_id,Company.id)
 txtt= '• User `'..Company.id..'`* Has Been Banned*'
 else 
@@ -2183,8 +2228,10 @@ KickUser(msg.chat_id,Company.id)
 RemoveFromBanList(msg.chat_id,Company.id)
 txtt= '• User '..Company.id..' Has Been Kick'
 else 
+txtt = '• User Not Found'
+
 end
-sendText(msg.chat_id, msg.id, Company.message,  'md')
+sendText(msg.chat_id, msg.id,txtt,  'md')
 end
 end
 resolve_username(username,KickByUserName)
@@ -2311,6 +2358,15 @@ inline = 'Enable'
 else
 inline = 'Disable' 
 end
+if redis:get("Flood:Status:"..msg.chat_id) then
+if redis:get("Flood:Status:"..msg.chat_id) == "kickuser" then
+Status = 'Kick User'
+elseif redis:get("Flood:Status:"..msg.chat_id) == "muteuser" then
+Status = 'Mute User'
+end
+else
+Status = 'Not Set'
+end
 if redis:get('Lock:Pin:'..chat) then
 pin = 'Enable'
 else
@@ -2426,7 +2482,7 @@ local d = math.floor(expire / day ) + 1
 EXPIRE = d.."  Day"
 end
 ------------------------More Settings-------------------------
-local Text = '•• `CerNer Company `\n\n*TD Bot* : `'..TD..'`\n\n*Settings For* `'..Company.title..'`\n\n*Links *:` '..Link..'`\n*Edit* : `'..edit..'`\n*Tag :* `'..tag..'`\n*HashTag : *`'..hashtag..'`\n*Inline : *`'..inline..'`\n*Video Note :* `'..video_note..'`\n*Pin :* `'..pin..'`\n*Bots : *`'..bot..'`\n*Forward :* `'..fwd..'`\n*Arabic : *`'..arabic..'`\n*English :* `'..en..'`\n*Tgservise :* `'..tg..'`\n*Sticker : *`'..sticker..'`\n\n_Mute Settings_ \n\n*Photo :* `'..photo..'`\n*Music : *`'..music..'`\n*Voice : *`'..voice..'`\n*Docoment :*`'..document..'`\n*Video : *`'..video..'`\n*Game :*`'..game..'`\n*Location : *`'..location..'`\n*Contact : *`'..contact..'`\n*Text :*`'..txts..'`\n*All* : `'..muteall..'`\n\n_More Locks_\n\n*Spam : *`'..spam..'`\n*Flood :* `'..flood..'`\n*Max Flood :* `'..NUM_MSG_MAX..'`\n*Spam Sensitivity : *`'..NUM_CH_MAX..'`\n*Flood Time :* `'..TIME_CHECK..'`\n*Warn Max :* `'..warn..'`\n\n*Expire :* `'..EXPIRE..'`\n*Welcome :* `'..welcome..'`\n\nChannel : '
+local Text = '•• `CerNer Company `\n\n*TD Bot* : `'..TD..'`\n\n*Settings For* `'..Company.title..'`\n\n*Links *:` '..Link..'`\n*Edit* : `'..edit..'`\n*Tag :* `'..tag..'`\n*HashTag : *`'..hashtag..'`\n*Inline : *`'..inline..'`\n*Video Note :* `'..video_note..'`\n*Pin :* `'..pin..'`\n*Bots : *`'..bot..'`\n*Forward :* `'..fwd..'`\n*Arabic : *`'..arabic..'`\n*English :* `'..en..'`\n*Tgservise :* `'..tg..'`\n*Sticker : *`'..sticker..'`\n\n_Mute Settings_ \n\n*Photo :* `'..photo..'`\n*Music : *`'..music..'`\n*Voice : *`'..voice..'`\n*Docoment :*`'..document..'`\n*Video : *`'..video..'`\n*Game :*`'..game..'`\n*Location : *`'..location..'`\n*Contact : *`'..contact..'`\n*Text :*`'..txts..'`\n*All* : `'..muteall..'`\n\n_More Locks_\n\n*Spam : *`'..spam..'`\n*Flood :* `'..flood..'`\n*Flood Stats :* `'..Status..'`\n*Max Flood :* `'..NUM_MSG_MAX..'`\n*Spam Sensitivity : *`'..NUM_CH_MAX..'`\n*Flood Time :* `'..TIME_CHECK..'`\n*Warn Max :* `'..warn..'`\n\n*Expire :* `'..EXPIRE..'`\n*Welcome :* `'..welcome..'`\n\nChannel : '
 sendText(msg.chat_id, msg.id, Text, 'md')
 end
 GetChat(msg.chat_id,GetName)
@@ -3070,8 +3126,13 @@ CompanyName = ec_name(Company.first_name)
 else  
 CompanyName = '\n\n'
 end
+if Company.status._ == "userStatusOnline" then
+userStatus = Company.expires
+else 
+userStatus = 'nil'
+end
 Msgs = redis:get('Total:messages:'..msg.chat_id..':'..msg.sender_user_id)
-sendText(msg.chat_id, msg.id,  '• `CerNer Company!!`\n\nYour Name : ['..CompanyName..']\n\n• User ID : ['..msg.sender_user_id..']\n\n• Rank : ['..rank..']\n\n• Total Msgs : ['..Msgs..']\n\n','md')
+sendText(msg.chat_id, msg.id,  '• `CerNer Company!!`\n\n• YourStatus : ['..userStatus..']\n• Your Name : ['..CompanyName..']\n• User ID : ['..msg.sender_user_id..']\n• Rank : ['..rank..']\n• Total Msgs : ['..Msgs..']\n','md')
 end
 GetUser(msg.sender_user_id,GetName)
 end
@@ -3660,6 +3721,14 @@ redis:sadd("ChatSuper:Bot",msg.chat_id);end;end;end;end;end
 function tdbot_update_callback(data)
 if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then
 showedit(data.message,data)
+ local msg = data.message
+print(msg)
+if msg.content._ == "messageText"  and redis:get('MuteAll:'..msg.chat_id) and not is_Mod(msg) then
+print  '                      Ok                   '
+redis:sadd('Mutes:'..msg.chat_id,msg.sender_user_id)
+deleteMessages(msg.chat_id, {[0] = msg.id})
+mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {1, 1, 0, 0, 0,0})
+end
 elseif (data._== "updateMessageEdited") then
 showedit(data.message,data)
 data = data
