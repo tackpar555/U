@@ -208,31 +208,6 @@ chat_id = chat_id,
 title = title
 }, dl_cb, nil))
 end
-function sendInlineQueryResultMessage(chatid, replytomessageid, disablenotification, frombackground, queryid, resultid)
-  assert (tdbot_function ({
-    _ = 'sendInlineQueryResultMessage',
-    chat_id = chatid,
-    reply_to_message_id = replytomessageid,
-    disable_notification = disablenotification,
-    from_background = frombackground,
-    query_id = queryid,
-    result_id = tostring(resultid)
-  }, dl_cb,nil))
-end
-function getInlineQueryResults(botuserid, chatid, lat, lon, query, off,cb)
-  assert (tdbot_function ({
-    _ = 'getInlineQueryResults',
-    bot_user_id = botuserid,
-    chat_id = chatid,
-    user_location = {
-      _ = 'location',
-      latitude = lat,
-      longitude = lon
-    },
-    query = tostring(query),
-    offset = tostring(off)
-  }, cb,nil))
-end
 
 function mute(chat_id, user_id, Restricted, right)
   local chat_member_status = {}
@@ -319,7 +294,18 @@ end
     chat_id = chatid
  }, cb, nil))
 end
-function getQuery(bot_user_id, chat_id, latitude, longitude, query,offset, cb)
+function sendInline(chatid, replytomessageid, disablenotification, frombackground, queryid, resultid)
+  assert (tdbot_function ({
+    _ = 'sendInlineQueryResultMessage',
+    chat_id = chatid,
+    reply_to_message_id = replytomessageid,
+    disable_notification = disablenotification,
+    from_background = frombackground,
+    query_id = queryid,
+    result_id = tostring(resultid)
+  }, dl_cb,nil))
+end
+function get(bot_user_id, chat_id, latitude, longitude, query,offset, cb)
   assert (tdbot_function ({
 _ = 'getInlineQueryResults',
  bot_user_id = bot_user_id,
@@ -329,8 +315,8 @@ user_location = {
 latitude = latitude,
 longitude = longitude 
 },
-query = query,
-offset = offset
+query = tostring(query),
+offset = tostring(off)
 }, cb, nil))
 end
 function StartBot(bot_user_id, chat_id, parameter)
@@ -721,6 +707,8 @@ end
          MsgType = 'Contact'
       end
  if not msg.reply_markup and msg.via_bot_user_id ~= 0 then
+print(serpent.block(data))
+
         print("[ CerNerCompany ]\nThis is [ MarkDown ]")
          MsgType = 'Markreed'
       end
@@ -1133,9 +1121,10 @@ function is_group(msg)
   end
 end
 
-function is_privatee(msg)
+function is_private(msg)
   chat_id = tostring(msg.chat_id)
-  if chat_id:match('^-') then
+  if chat_id:match('^(%d+)') then
+print'           ty                                   '
     return false
   else
     return true
@@ -1346,7 +1335,7 @@ redis:del('CheckExpire:'..chat_id)
 sendText(msg.chat_id,msg.id,'ربات با موفقيت از گروه '..chat_id..' خارج شد.','md')
 sendText(chat_id,0,'ربات به دستور سازنده از گروه خارج میشود ','md')
 Left(chat_id,TD_ID, "Left")
-end
+end 
 if cerner == 'groups' then
 local list = redis:smembers('group:')
 local t = '• Groups\n'
@@ -1384,6 +1373,7 @@ end
 if cerner == 'leave' then
 Left(msg.chat_id, TD_ID, 'Left')
 end
+
 if cerner == 'stats' then
 local allmsgs = redis:get('allmsgs')
 local supergroup = redis:scard('ChatSuper:Bot')
@@ -1404,6 +1394,13 @@ Users : ]]..users..[[
 
 ]]
 sendText(msg.chat_id, msg.id,text,  'md' )
+end
+if cerner == 'reset' then
+ redis:del('allmsgs')
+redis:del('ChatSuper:Bot')
+ redis:del('Chat:Normal')
+ redis:del('ChatPrivite')
+sendText(msg.chat_id, msg.id,'Done',  'md' )
 end
 if cerner == 'ownerlist' then
 local list = redis:smembers('OwnerList:'..msg.chat_id)
@@ -3126,13 +3123,9 @@ CompanyName = ec_name(Company.first_name)
 else  
 CompanyName = '\n\n'
 end
-if Company.status._ == "userStatusOnline" then
-userStatus = Company.expires
-else 
-userStatus = 'nil'
-end
+
 Msgs = redis:get('Total:messages:'..msg.chat_id..':'..msg.sender_user_id)
-sendText(msg.chat_id, msg.id,  '• `CerNer Company!!`\n\n• YourStatus : ['..userStatus..']\n• Your Name : ['..CompanyName..']\n• User ID : ['..msg.sender_user_id..']\n• Rank : ['..rank..']\n• Total Msgs : ['..Msgs..']\n','md')
+sendText(msg.chat_id, msg.id,  '• `CerNer Company!!`\n\n• Your Name : ['..CompanyName..']\n• User ID : ['..msg.sender_user_id..']\n• Rank : ['..rank..']\n• Total Msgs : ['..Msgs..']\n','md')
 end
 GetUser(msg.sender_user_id,GetName)
 end
@@ -3146,22 +3139,19 @@ end
 if result.common_chat_count  then
 Companycommon_chat_count  = result.common_chat_count 
 else 
-Companycommon_chat_count  = 'nil\n\n'
+Companycommon_chat_count  = 'nil'
 end
-if result.has_private_calls  then
-Companyhas_private_calls  = result.has_private_calls
-else 
-Companyhas_private_calls  = 'nil\n\n'
-end
-if result.is_blocked   then
-Companyis_blocked  = result.is_blocked 
-else 
-Companyis_blocked  = 'nil\n\n'
-end
-sendText(msg.chat_id, msg.id,  '• `CerNer Company`!!\n\n• Bio : ['..CompanyName..']\n\n• Common chat count : ['..Companycommon_chat_count..']\n\n', 'md')
+sendText(msg.chat_id, msg.id,  '• `CerNer Company`!!\n\n• Bio : ['..CompanyName..']\n\nCommon chat count : ['..Companycommon_chat_count..']', 'md')
 end
 GetUserFull(msg.sender_user_id,GetName)
 end
+if cerner == 'groupinfo' then
+ local function FullInfo(CerNer,Company)
+sendText(msg.chat_id, msg.id,'*SuperGroup Info :*\n`SuperGroup ID :`*'..msg.chat_id..'*\n`Total Admins :` *'..Company.administrator_count..'*\n`Total Banned :` *'..Company.banned_count..'*\n`Total Members :` *'..Company.member_count..'*\n`About Group :` *'..Company.description..'*\n`Link : `*'..Company.invite_link..'*\n`Total Restricted : `*'..Company.restricted_count..'*', 'md')
+end
+getChannelFull(msg.chat_id,FullInfo)
+end
+
 -------------------------------
 end
 if cerner == 'link' then
@@ -3284,8 +3274,10 @@ text =[[ •• راهنمای کار با کرنر برای مقام صاحب �
 شما میتوانید از 
 
 {first} : بکار بردن نام کاربر
-} last} : بکار بردن نام بزرگ 
-}username} : بکار بردن یوزرنیم
+{last} : بکار بردن نام بزرگ 
+{username} : بکار بردن یوزرنیم
+{rules} : بکار بردن قوانین
+}link} : بکار بردن لینک 
 
 مثال :
 setwelcome سلام {first} {last} {username} به گروه خوش امدی 
@@ -3337,6 +3329,9 @@ setwelcome سلام {first} {last} {username} به گروه خوش امدی
 
 • setflood [num]
 > تنظیم پیام رگباری
+
+• setflood [kickuser] or [muteuser]
+> تنظیم حالت برخورد با پیام رگباری
 
 • setfloodtime [num]
 > تنظیم زمان پیام رگباری
@@ -3411,6 +3406,8 @@ text =[[•• راهنمای کار با ربات کرنر برای مقام ص
 {last} : بکار بردن نام بزرگ 
 {username} : بکار بردن یوزرنیم
 {rules} : بکار بردن قوانین
+{link} : بکار بردن لینک
+
 
 مثال :
 setwelcome سلام {first} {last} {username} به گروه خوش امدی 
@@ -3479,6 +3476,9 @@ setwelcome سلام {first} {last} {username} به گروه خوش امدی
 
 • setflood [num]
 > تنظیم پیام رگباری
+
+• setflood [kickuser] or [muteuser]
+> تنظیم حالت برخورد با پیام رگباری
 
 • setfloodtime [num]
 > تنظیم زمان پیام رگباری
@@ -3558,6 +3558,8 @@ text =[[• • راهنمای کار با کرنر برای مقام کمک م�
 {last} : بکار بردن نام بزرگ 
 {username} : بکار بردن یوزرنیم
 {rules} : بکار بردن قوانین
+{link} : بکار بردن لینک
+
 مثال :
 setwelcome سلام {first} {last} {username} به گروه خوش امدی 
 
