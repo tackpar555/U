@@ -177,7 +177,6 @@ troppuSrenreC@
 slennahc ruO
 ---------------------------------------
 ) RI_yoB@ ( ]azerilA[ nassaH 
-) elytSbuS@ ( rhepeS
 ) auLedoC@ ( rimA
 
 ... maeT ruO
