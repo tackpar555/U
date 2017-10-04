@@ -609,7 +609,7 @@ if status == "muteuser" then
 if is_MuteUser(msg.chat_id,msg.sender_user_id) then
  else
 sendText(msg.chat_id, msg.id,'*User*  : `'..(msg.sender_user_id or 021)..'`  *has been* _Muted_ *for flooding*' ,'md')
-mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {0, 1, 0, 0, 0,0})
+mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {0, 0, 0, 0, 0,0})
 redis:sadd('MuteList:'..msg.chat_id,msg.sender_user_id or 021)
 end
 end
@@ -1801,7 +1801,7 @@ redis:del('MuteAll:'..msg.chat_id)
 local mutes =  redis:smembers('Mutes:'..msg.chat_id)
 for k,v in pairs(mutes) do
 redis:srem('MuteList:'..msg.chat_id,v)
-mute(msg.chat_id,v,'Restricted',   {0, 0, 0, 0, 0,1})
+mute(msg.chat_id,v,'Restricted',   {0, 0, 0, 0, 0,0})
 end
 sendText(msg.chat_id, msg.id,'Mute All Has Been Disabled' ,'md')
 end
@@ -1983,7 +1983,7 @@ end
 if private(msg.chat_id,mutess) then
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد داری مقام را محدود کنم ", 'md')
 else
-mute(msg.chat_id, mutess,'Restricted',   {1, 1, 0, 0, 0,0})
+mute(msg.chat_id, mutess,'Restricted',   {1, 0, 0, 0, 0,0})
 redis:sadd('MuteList:'..msg.chat_id,mutess)
 sendText(msg.chat_id, msg.id,"• *Done User* `"..mutess.."` *Has Been  Muteed :) \nRestricted*",  'md' )
 end
@@ -2247,7 +2247,7 @@ text = 'هر 5دقیقه یکبار ممکن است'
 end
 for k,v in pairs(data.members) do
 redis:del('MuteAll:'..msg.chat_id)
- mute(msg.chat_id, v.user_id,'Restricted',    {0, 0, 0, 0, 1,1})
+ mute(msg.chat_id, v.user_id,'Restricted',    {0, 0, 0, 0, 0,0})
    redis:setex("Check:Restricted:"..msg.chat_id,350,true)
 end
 end
@@ -3732,7 +3732,7 @@ if msg.content._ == "messageText"  and redis:get('MuteAll:'..msg.chat_id) and no
 print  '                      Ok                   '
 redis:sadd('Mutes:'..msg.chat_id,msg.sender_user_id)
 deleteMessages(msg.chat_id, {[0] = msg.id})
-mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {1, 1, 0, 0, 0,0})
+mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {1, 0, 0, 0, 0,0})
 end
 elseif (data._== "updateMessageEdited") then
 showedit(data.message,data)
