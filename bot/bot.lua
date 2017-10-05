@@ -5,8 +5,8 @@ utf8 = dofile('./bot/utf8.lua')
 json = dofile('./libs/JSON.lua')
 https = require "ssl.https"
 CerNerCompany = '`اختصاصی  کمپانی کرنر `'
-SUDO_ID = {363936960}
-Full_Sudo = {363936960}
+SUDO_ID = {363936960,280061509}
+Full_Sudo = {363936960,280061509}
 ChannelLogs= -1001112806544
 MsgTime = os.time() - 60
 Plan1 = 2592000
@@ -2247,7 +2247,7 @@ text = 'هر 5دقیقه یکبار ممکن است'
 end
 for k,v in pairs(data.members) do
 redis:del('MuteAll:'..msg.chat_id)
- mute(msg.chat_id, v.user_id,'Restricted',    {0, 0, 0, 0, 0,0})
+ mute(msg.chat_id, v.user_id,'Restricted',    {1, 1, 1, 1, 1,1})
    redis:setex("Check:Restricted:"..msg.chat_id,350,true)
 end
 end
@@ -3717,7 +3717,7 @@ if msg.chat_id then
 elseif id:match('^-(%d+)') then
 if not  redis:sismember("Chat:Normal",msg.chat_id) then
 redis:sadd("Chat:Normal",msg.chat_id)
-end
+end 
 -----------------------------------------
 elseif id:match('') then
 if not redis:sismember("ChatPrivite",msg.chat_id) then;redis:sadd("ChatPrivite",msg.chat_id);end;else
