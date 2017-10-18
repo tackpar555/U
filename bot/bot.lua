@@ -609,7 +609,7 @@ if status == "muteuser" then
 if is_MuteUser(msg.chat_id,msg.sender_user_id) then
  else
 sendText(msg.chat_id, msg.id,'*User*  : `'..(msg.sender_user_id or 021)..'`  *has been* _Muted_ *for flooding*' ,'md')
-mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {0, 0, 0, 0, 0,0})
+mute(msg.chat_id,msg.sender_user_id or 021,'Restricted',   {1, 0, 0, 0, 0,0})
 redis:sadd('MuteList:'..msg.chat_id,msg.sender_user_id or 021)
 end
 end
@@ -721,7 +721,7 @@ end
       MsgType = 'Photo'
 end
 if msg.sender_user_id and is_GlobalyBan(msg.sender_user_id) then
-sendText(msg.chat_id, msg.id,'*User * : `'..msg.sender_user_id..'` *is Globall Banned *','md')
+sendText(msg.chat_id, msg.id,'*User * : `'..msg.sender_user_id..'` *is Globaly Banned *','md')
 KickUser(msg.chat_id,msg.sender_user_id)
 end
 
@@ -729,7 +729,7 @@ if MsgType == 'AddUser' then
 function ByAddUser(CerNer,Company)
 if is_GlobalyBan(Company.id) then
 print '                      >>>>Is  Globall Banned <<<<<       '
-sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Globall Banned *','md')
+sendText(msg.chat_id, msg.id,'*User * : `'..Company.id..'` *is Globaly Banned *','md')
 end
 GetUser(msg.content.member_user_ids[0],ByAddUser)
 end
@@ -1181,7 +1181,7 @@ end
 end
 if is_supergroup(msg) then
 if cerner == 'test' then
-redis:del('Request1:')
+redis:del('Request:')
 end
 if is_sudo(msg) then
 if cerner == 'bc' and tonumber(msg.reply_to_message_id) > 0 then
@@ -1581,7 +1581,7 @@ end
 sendText(msg.chat_id, msg.id,t, 'md')
 end
 if cerner == 'clean gbans' then
-redis:del('GlobalyBanned:'..msg.chat_id)
+redis:del('GlobalyBanned:')
 sendText(msg.chat_id, msg.id,'• *Gobaly Banned* Has Been Cleared..', 'md')
 end
 ---------------------Unbanall--------------------------------------
@@ -1801,7 +1801,7 @@ redis:del('MuteAll:'..msg.chat_id)
 local mutes =  redis:smembers('Mutes:'..msg.chat_id)
 for k,v in pairs(mutes) do
 redis:srem('MuteList:'..msg.chat_id,v)
-mute(msg.chat_id,v,'Restricted',   {0, 0, 0, 0, 0,0})
+mute(msg.chat_id,v,'Restricted',   {1, 1, 1, 1, 1,1})
 end
 sendText(msg.chat_id, msg.id,'Mute All Has Been Disabled' ,'md')
 end
@@ -1952,7 +1952,7 @@ text ='• _ User : _ `'..Company.id..'` *Promoted* to `VIP` member..'
 redis:sadd('Vip:'..msg.chat_id, Company.id)
 end
 else 
-text = '• *User NotFound*'
+text = '• *User Not Found*'
 end
 sendText(msg.chat_id, msg.id, text, 'md')
 end
@@ -2730,24 +2730,24 @@ if redis:get('Lock:English:'..msg.chat_id) then
 sendText(msg.chat_id, msg.id, '• `Lock` *English* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:English:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *English*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 --------------------------------------------
 if cerner == 'lock tgservice' then
 if redis:get('Lock:TGservise:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *TGservise*  is _Already_ `Enable`\n\n' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *TGservice*  is _Already_ `Enable`\n\n' , 'md')
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Enable`\n\n' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *TGservice* `Has Been Enable`\n\n' , 'md')
 redis:set('Lock:TGservise:'..msg.chat_id,true)
 end
 end
 if cerner == 'unlock tgservice' then
 if redis:get('Lock:TGservise:'..msg.chat_id) then
-sendText(msg.chat_id, msg.id, '• `Lock` *TGservise* `Has Been Disable`\n\n' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *TGservice* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:TGservise:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *TGservice*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 -------------------------------------------
@@ -2764,7 +2764,7 @@ if redis:get('Lock:Sticker:'..msg.chat_id) then
 sendText(msg.chat_id, msg.id, '• `Lock` *Sticker* `Has Been Disable`\n\n' , 'md')
 redis:del('Lock:Sticker:'..msg.chat_id)
 else
-sendText(msg.chat_id, msg.id, '• `Lock` *Forward*  is _Already_  `Disable`\n\n' , 'md')
+sendText(msg.chat_id, msg.id, '• `Lock` *Sticker*  is _Already_  `Disable`\n\n' , 'md')
 end
 end
 --------------------------------------------
@@ -3156,7 +3156,6 @@ getChannelFull(msg.chat_id,FullInfo)
 end
 
 -------------------------------
-end
 if cerner == 'link' then
 local link = redis:get('Link:'..msg.chat_id) 
 if link then
@@ -3695,7 +3694,7 @@ end
 sendText(msg.chat_id, msg.id, text, 'html')
 end
 end
-
+end
 ------CerNer Company---------.
 if cerner  then
 local function cb(a,b,c)
@@ -3728,7 +3727,7 @@ if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then
 showedit(data.message,data)
  local msg = data.message
 print(msg)
-if msg.content._ == "messageText"  and redis:get('MuteAll:'..msg.chat_id) and not is_Mod(msg) then
+if msg.sender_user_id  and redis:get('MuteAll:'..msg.chat_id) and not is_Mod(msg) then
 print  '                      Ok                   '
 redis:sadd('Mutes:'..msg.chat_id,msg.sender_user_id)
 deleteMessages(msg.chat_id, {[0] = msg.id})
