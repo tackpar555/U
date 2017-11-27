@@ -1,6 +1,6 @@
 #!/bin/bash
 #Launch created by Amir Bagheri
-tgcli_version="171128"
+tgcli_version="171128-nightly"
 luarocks_version=2.4.2
 lualibs=(
 'luasec'
