@@ -1,6 +1,6 @@
 #!/bin/bash
-# Launch created by Amir Bagheri
-tgcli_version="171003-nightly"
+#Launch created by Amir Bagheri
+tgcli_version="171128"
 luarocks_version=2.4.2
 lualibs=(
 'luasec'
@@ -183,6 +183,9 @@ TXT=(
 printf "${TXT}"
 printf "\n"
 }
+run-hepler() {
+./Api/bot.lua
+}
 warning() {
 TXT=(
 "دستور وارد شده صحیح نیست !  لطفا از \n./C help استفاده کنید!"
@@ -221,6 +224,15 @@ start)
 startbotlogo
 launch
 exit;;
+auto-helper)
+autorun-helper
+exit;;
+run-helper)
+run
+exit;;
+auto-start)
+screen-clibot
+exit;;
 update)
 gitpull
 updateTD
@@ -233,6 +245,7 @@ echo "راهنمای اجرای سورس کرنر :  ••  "
 echo "install -  نصب پکیج های مورد نیاز • "
 echo "config - پیکربندی ودانلود  تیجی • "
 echo "start - راه اندازی ربات   • "
+echo "./C run-helper  Bash For Helper"
 echo "Change-Login - تغغیر حالت ربات    • "
 echo "login-Cli - لوگین شدن به عنوان ربات cli "
 echo "login-Api - لوگین شدن به عنوان ربات Api "
