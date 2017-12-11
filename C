@@ -1,6 +1,6 @@
 #!/bin/bash
 #Launch created by Amir Bagheri
-tgcli_version="171128-nightly"
+tgcli_version="171211-nightly"
 luarocks_version=2.4.2
 lualibs=(
 'luasec'
@@ -15,6 +15,18 @@ lualibs=(
 'xml'
 'feedparser'
 'serpent'
+)
+Start=(
+"█▒▒▒▒▒▒▒▒▒"
+"██▒▒▒▒▒▒▒▒"
+"███▒▒▒▒▒▒▒"
+"████▒▒▒▒▒▒"
+"█████▒▒▒▒▒"
+"██████▒▒▒▒"
+"███████▒▒▒"
+"████████▒▒"
+"█████████▒"
+"██████████"         
 )
 
 today=`date +%F`
@@ -42,6 +54,13 @@ sudo apt-get install libnotify-dev -y
 chmod +x bot
 chmod +x tg
 chmod +x Company
+}
+play() {
+local i
+for ((i=0;i<${#Start[@]};i++)); do
+sleep 0.1
+printf "\rBot Running please wait ...  [`make_progress $(($i+1)) ${#Start[@]}`%%] ${Start[$i]}\r"
+done
 }
 get_sub() {
 local flag=false c count cr=$'\r' nl=$'\n'
@@ -186,6 +205,9 @@ printf "\n"
 run-hepler() {
 ./Api/bot.lua
 }
+autoRun(){
+screen ./Company
+}
 warning() {
 TXT=(
 "دستور وارد شده صحیح نیست !  لطفا از \n./C help استفاده کنید!"
@@ -221,8 +243,15 @@ install)
 install
 exit;;
 start)
+play
+launch
+exit;;
+startS)
 startbotlogo
 launch
+exit;;
+auto-run)
+autoRun
 exit;;
 auto-helper)
 autorun-helper
@@ -246,6 +275,7 @@ echo "install -  نصب پکیج های مورد نیاز • "
 echo "config - پیکربندی ودانلود  تیجی • "
 echo "start - راه اندازی ربات   • "
 echo "run-helper  Bash For Helper"
+echo "auto-run AutoRun For Cli Bot"
 echo "Change-Login - تغغیر حالت ربات    • "
 echo "login-Cli - لوگین شدن به عنوان ربات cli "
 echo "login-Api - لوگین شدن به عنوان ربات Api "
