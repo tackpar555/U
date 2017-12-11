@@ -5,6 +5,7 @@ redis =  dofile("./libs/redis.lua")
 minute = 60
 hour = 3600
 day = 86400
+offset = 0
 week = 604800
 local color = {
   black = {30, 40},
@@ -16,7 +17,7 @@ local color = {
   cyan = {36, 46},
   white = {37, 47}
 }
-SendApi = '468598865:AAFYomzJUSZw8mhyM-rTUQofb3yTx0n6Mq4'
+SendApi = '485642578:AAGuSXixfYGlEjoqJ6E76QRis2fYGbR0oCw' ---Token Bot
 TD_ID = redis:get('BOT-ID')
 http = require "socket.http"
 utf8 = dofile('./bot/utf8.lua')
@@ -27,11 +28,11 @@ https = require("ssl.https")
 URL = require("socket.url")
 https = require "ssl.https"
 CerNerCompany = '`اختصاصی  کمپانی کرنر `'
-SUDO_ID = {363936960}
-Full_Sudo = {363936960}
-ChannelLogs = -13
-BotHelper = 90
-Channel = '@CerNerCompany'
+SUDO_ID = {363936960} --Admins
+Full_Sudo = {363936960} --Sudo --- 
+ChannelLogs = 363936960 ---Channel log
+BotHelper = 90 --ID Bot helper
+Channel = '@CerNerCompany' -- Channel
 MsgTime = os.time() - 60
 Plan1 = 2592000
 Plan2 = 7776000
@@ -901,24 +902,6 @@ end
  if msg.content._== "messageText" then
 MsgType = 'text'
 end
- if msg.content._== "messageText" then
-local function GetM(Company,CerNer)
-local function GetName(Companys,Company)
-print("\027[" ..color.blue[1].. "m["..os.date("%H:%M:%S").."]\027[00m  >>>> "..msg.content.text.."")
-end
-GetUser(msg.sender_user_id,GetName)
-end
-GetChat(msg.chat_id,GetM)
-end
-if msg.content.caption then
-function GetM(Company,CerNer)
-function GetName(Companys,Company)
-print("["..os.date("%H:%M:%S").."] "..CerNer.title.." "..Company.first_name.." >>>> "..msg.content.caption.."")
-end
-GetUser(msg.sender_user_id,GetName)
-end
-GetChat(msg.chat_id,GetM)
-end
 if msg.content._ == "messageChatAddMembers" then
 for i=0,#msg.content.member_user_ids do
 msg.add = msg.content.member_user_ids[i]
@@ -929,14 +912,7 @@ if msg.content._ == "messageChatJoinByLink" then
 MsgType = 'JoinedByLink'
 end
 if msg.content._ == "messageDocument" then
-function GetM(Company,CerNer)
-function GetName(Companys,Company)
-print("["..os.date("%H:%M:%S").."] "..CerNer.title.." "..Company.first_name.." >>>>[messageDocument][  "..Company.id.."]")
 MsgType = 'Document'
-end
-GetUser(msg.sender_user_id,GetName)
-end
-GetChat(msg.chat_id,GetM)
 end
 if msg.content._ == "messageSticker" then
 print("[ CerNerCompany ]\nThis is [ Sticker ]")
@@ -1685,6 +1661,9 @@ if cerner and cerner:match('^call (%d+)$') then
 local user_id = cerner:match('^call (%d+)$')
 Call(user_id)
 sendText(msg.chat_id, msg.id,"Done",  'md' )
+end
+if msg.inline_query_placeholder == 'login' then
+print 'tesy'
 end
 if cerner == 'stats' then
 local allmsgs = redis:get('allmsgs')
@@ -3745,15 +3724,12 @@ end
 tdbot_function ({_ ="getUserProfilePhotos", user_id = msg.sender_user_id, offset = offset-1, limit = 100000000000000000000000 },GetPro1, nil)
 end
 end
-if cerner == 'id' and forcejoin(msg)  then
+if cerner == 'id' and forcejoin(msg) and tonumber(msg.reply_to_message_id) > 0 then
 function GetID(CerNer, Company)
  local user = Company.sender_user_id
 local text = 'CerNer Company\n'..Company.sender_user_id
 SendMetion(msg.chat_id,Company.sender_user_id, msg.id, text, 16, string.len(Company.sender_user_id))
 end
-end
-if tonumber(msg.reply_to_message_id) == 0 then
-else
 getMessage(msg.chat_id, tonumber(msg.reply_to_message_id),GetID)
 end
 if cerner == "id" and forcejoin(msg) and tonumber(msg.reply_to_message_id) == 0  then 
