@@ -47,6 +47,6 @@ Company Channels:
 [CerNer Company](https://github.com/CerNerCompany)
 
 -------------------
-More information [CerNer Company](https://t.me/joinchat/FbE8wENTfgMVM1S9tNmosA)
+More information [CerNer Company](https://t.me/joinchat/FbE8wFF2ImkSiaZbvFem4w)
 
 
