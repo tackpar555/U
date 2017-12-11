@@ -37,6 +37,7 @@ After installing the dependencies, lets install the bot:
  ./C login-Api
  ./C Change-Login #Changed Login
  ./C start
+ ./C auto-run
 ```
 Developer:
 [Amir Bagheri](https://github.com/Codelua)
