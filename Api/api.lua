@@ -4,6 +4,7 @@ local serpent = require("serpent")
 local socket = require("socket")
 local ltn12 = require("ltn12")
 CerNerCompany = '`اختصاصی کمپانی کرنر÷'
+Channel = 'CerNerCompany'
 local URL = require("socket.url")
 local json = (loadfile "./libs/JSON.lua")()
 local redis1 = require("redis")
