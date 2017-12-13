@@ -202,7 +202,7 @@ TXT=(
 printf "${TXT}"
 printf "\n"
 }
-run-hepler() {
+run-heplerBot() {
 lua Api/api.lua
 }
 autoRun(){
@@ -257,7 +257,7 @@ auto-helper)
 autorun-helper
 exit;;
 run-helper)
-run
+run-heplerBot
 exit;;
 auto-start)
 screen-clibot
