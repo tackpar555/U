@@ -15,6 +15,7 @@ local offset = 0
 MsgTime = os.time() - 5
 BotCli = 00000
 Sudo = 0000
+day = 86400
 SUDO_ID = {446616894,223870582,363936960} 
 -----CerNer Company
 function is_sudo(msg)
