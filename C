@@ -203,7 +203,7 @@ printf "${TXT}"
 printf "\n"
 }
 run-hepler() {
-./Api/api.lua
+lua Api/api.lua
 }
 autoRun(){
 screen ./Company
