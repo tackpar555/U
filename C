@@ -257,7 +257,7 @@ auto-run)
 autoRun
 exit;;
 auto-run-helper)
-autorun-helper
+autoRunHepler
 exit;;
 run-helper)
 run-heplerBot
