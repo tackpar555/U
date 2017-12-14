@@ -208,6 +208,9 @@ lua Api/api.lua
 autoRun(){
 screen ./Company
 }
+autoRunHepler(){
+screen ./Api/Bash
+}
 warning() {
 TXT=(
 "دستور وارد شده صحیح نیست !  لطفا از \n./C help استفاده کنید!"
@@ -266,6 +269,9 @@ update)
 gitpull
 updateTD
 exit ;;
+auto-run-helper)
+autoRunHepler
+exit ;;
 tgcli_version)
 get_tgcli_version
 exit ;;
@@ -276,6 +282,7 @@ echo "config - پیکربندی ودانلود  تیجی • "
 echo "start - راه اندازی ربات   • "
 echo "run-helper  Bash For Helper"
 echo "auto-run AutoRun For Cli Bot"
+echo "auto-run-hepler AutoRun For Helper Bot"
 echo "Change-Login - تغغیر حالت ربات    • "
 echo "login-Cli - لوگین شدن به عنوان ربات cli "
 echo "login-Api - لوگین شدن به عنوان ربات Api "
