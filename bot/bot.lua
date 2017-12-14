@@ -2443,7 +2443,7 @@ end
 if private(msg.chat_id,Company.sender_user_id) then
 sendText(msg.chat_id, msg.id, "اوه شت :(\nمن نمیتوانم یک فرد داری مقام را محدود کنم ", 'md')
 else
-mute(msg.chat_id, Company.sender_user_id,'Restricted',   {1,msg.date+time, 0, 0, 0,0})
+mute(msg.chat_id, Company.sender_user_id,'Restricted',   {1,0, 0, 0, 0,0})
 redis:sadd('MuteList:'..msg.chat_id,Company.sender_user_id)
 SendMetion(msg.chat_id,Company.sender_user_id, msg.id, "• کاربر "..(Company.sender_user_id).." در حالت سکوت قرار گرفت ", 8,string.len(Company.sender_user_id))
 end
