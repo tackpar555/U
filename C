@@ -256,7 +256,7 @@ exit;;
 auto-run)
 autoRun
 exit;;
-auto-helper)
+auto-run-helper)
 autorun-helper
 exit;;
 run-helper)
