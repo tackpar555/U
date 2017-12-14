@@ -1,0 +1,5 @@
+#CerNerCompany
+while true; do
+./C run-hepler
+sleep 7
+done
