@@ -1,5 +1,5 @@
 #CerNerCompany
 while true; do
-./C run-hepler
+./C run-helper
 sleep 7
 done
