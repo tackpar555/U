@@ -893,7 +893,7 @@ local cerner1 = msg.content.text
 if cerner then
 cerner = cerner:lower()
 end
- if MsgType == 'text' and cerner then
+ if cerner then
 if cerner:match('^[/#!]') then
 cerner= cerner:gsub('^[/#!]','')
 end
@@ -1678,13 +1678,20 @@ local totalbot = io.popen("du -h ./bot/bot.lua"):read("*a")
 SourceSize = string.gsub(totalbot, "./bot/bot.lua","")
 local text =[[
 • تمام پیام های چک شده  : ]]..allmsgs..[[
+				
 سوپر گروه ها :]]..supergroup..[[
+				
 گروه ها : ]]..Groups..[[
+				
 کاربران   : ]]..users..[[
+				
 یوزر : ]]..user..[[
+				
 آپتایم : ]]..uptime..[[
+				
 مقدار مصرف شده ردیس : ]]..sizered..
 [[
+				
 حجم سورس : ]]..SourceSize
 sendText(msg.chat_id, msg.id,text,  'md' )
 end
